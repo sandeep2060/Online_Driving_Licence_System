@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect, useRef } from 'react'
+import { createContext, useContext, useState, useEffect } from 'react'
 import { supabase } from '../lib/supabase.js'
 
 const AuthContext = createContext(null)
@@ -7,95 +7,51 @@ export function AuthProvider({ children }) {
   const [user, setUser] = useState(null)
   const [profile, setProfile] = useState(null)
   const [loading, setLoading] = useState(true)
-  const profileRequestRef = useRef(new Map())
 
   const role = profile?.role || null
 
   const fetchProfile = async (userId) => {
-    if (!userId) return null
-
-    // If a request for this user is already pending, return that promise
-    if (profileRequestRef.current.has(userId)) {
-      return profileRequestRef.current.get(userId)
-    }
-
-    const promise = (async () => {
-      try {
-        const { data, error } = await supabase
-          .from('profiles')
-          .select('*')
-          .eq('id', userId)
-          .single()
-        if (error) {
-          console.error('Error fetching profile:', error)
-          setProfile(null)
-          return null
-        }
-        setProfile(data)
-        return data
-      } catch (err) {
-        console.error('Error fetching profile:', err)
-        setProfile(null)
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', userId)
+        .single()
+      if (error) {
+        console.error('Error fetching profile:', error)
         return null
-      } finally {
-        profileRequestRef.current.delete(userId)
       }
-    })()
-
-    profileRequestRef.current.set(userId, promise)
-    return promise
+      setProfile(data)
+      return data
+    } catch (err) {
+      console.error('Error fetching profile:', err)
+      return null
+    }
   }
 
   useEffect(() => {
-    let isMounted = true
-    const timeoutId = setTimeout(async () => {
-      try {
-        const { data: { session } } = await supabase.auth.getSession()
-        if (!isMounted) return
-        
-        setUser(session?.user ?? null)
-        if (session?.user) {
-          await fetchProfile(session.user.id)
-        } else {
-          setProfile(null)
-        }
-      } catch (err) {
-        console.error('Error in getSession:', err)
-        if (isMounted) {
-          setUser(null)
-          setProfile(null)
-        }
-      } finally {
-        if (isMounted) setLoading(false)
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
+      setUser(session?.user ?? null)
+      if (session?.user) {
+        await fetchProfile(session.user.id)
+      } else {
+        setProfile(null)
       }
-    }, 0)
+      setLoading(false)
+    })
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
-      if (!isMounted) return
-      
-      try {
-        setUser(session?.user ?? null)
-        if (session?.user) {
-          await fetchProfile(session.user.id)
-        } else {
-          setProfile(null)
-        }
-        setLoading(false)
-      } catch (err) {
-        console.error('Error in auth state change:', err)
-        if (isMounted) {
-          setUser(null)
-          setProfile(null)
-          setLoading(false)
-        }
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange(async (_event, session) => {
+      setUser(session?.user ?? null)
+      if (session?.user) {
+        await fetchProfile(session.user.id)
+      } else {
+        setProfile(null)
       }
     })
 
-    return () => {
-      isMounted = false
-      clearTimeout(timeoutId)
-      subscription?.unsubscribe()
-    }
+    return () => subscription.unsubscribe()
   }, [])
 
   const signUp = async ({ email, password, ...metadata }) => {
@@ -110,43 +66,36 @@ export function AuthProvider({ children }) {
           },
         },
       })
-      if (error) throw error
+      if (error) {
+        console.error('Sign up error:', error)
+        throw new Error(error.message || 'Failed to sign up. Please check your Supabase configuration.')
+      }
       return data
     } catch (err) {
-      console.error('Sign up error:', err)
-      throw err
+      if (err.message) throw err
+      throw new Error('Failed to sign up. Please check your Supabase configuration.')
     }
   }
 
   const signIn = async (email, password) => {
     try {
       const { data, error } = await supabase.auth.signInWithPassword({ email, password })
-      if (error) throw error
-      
-      // Longer delay to ensure lock is properly released and session is stable
-      await new Promise(resolve => setTimeout(resolve, 1000))
-      
-      if (data?.user?.id) {
-        const prof = await fetchProfile(data.user.id)
-        return { user: data.user, profile: prof }
+      if (error) {
+        console.error('Sign in error:', error)
+        throw new Error(error.message || 'Invalid email or password')
       }
-      return { user: data.user, profile: null }
+      const prof = await fetchProfile(data.user.id)
+      return { user: data.user, profile: prof }
     } catch (err) {
-      console.error('Sign in error:', err)
-      throw err
+      if (err.message) throw err
+      throw new Error('Failed to sign in. Please check your Supabase configuration.')
     }
   }
 
   const signOut = async () => {
-    try {
-      await supabase.auth.signOut()
-    } catch (err) {
-      console.error('Sign out error:', err)
-    } finally {
-      setUser(null)
-      setProfile(null)
-      profileRequestRef.current.clear()
-    }
+    await supabase.auth.signOut()
+    setUser(null)
+    setProfile(null)
   }
 
   const value = {

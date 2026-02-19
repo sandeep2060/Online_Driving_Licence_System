@@ -18,7 +18,6 @@ CREATE TABLE IF NOT EXISTS public.profiles (
   first_name TEXT,
   middle_name TEXT,
   last_name TEXT,
-  nepali_name TEXT,
   date_of_birth DATE,
   gender TEXT CHECK (gender IN ('male', 'female', 'other')),
   blood_group TEXT,
@@ -51,11 +50,11 @@ CREATE POLICY "Admins can view all profiles"
   );
 
 -- Auto-create profile on signup (via trigger)
--- Pass metadata in signUp: { data: { first_name, last_name, nepali_name, ... } }
+-- Pass metadata in signUp: { data: { first_name, last_name, ... } }
 CREATE OR REPLACE FUNCTION public.handle_new_user()
 RETURNS TRIGGER AS $$
 BEGIN
-  INSERT INTO public.profiles (id, email, role, first_name, middle_name, last_name, nepali_name, date_of_birth, gender, blood_group, phone)
+  INSERT INTO public.profiles (id, email, role, first_name, middle_name, last_name, date_of_birth, gender, blood_group, phone)
   VALUES (
     NEW.id,
     NEW.email,
@@ -63,7 +62,6 @@ BEGIN
     NEW.raw_user_meta_data->>'first_name',
     NEW.raw_user_meta_data->>'middle_name',
     NEW.raw_user_meta_data->>'last_name',
-    NEW.raw_user_meta_data->>'nepali_name',
     (NEW.raw_user_meta_data->>'date_of_birth')::DATE,
     NEW.raw_user_meta_data->>'gender',
     NEW.raw_user_meta_data->>'blood_group',
@@ -171,29 +169,6 @@ CREATE TRIGGER profiles_updated_at
 CREATE TRIGGER applications_updated_at
   BEFORE UPDATE ON public.applications
   FOR EACH ROW EXECUTE FUNCTION update_updated_at();
-
--- Auto-create application when user signs up
-CREATE OR REPLACE FUNCTION create_application_on_signup()
-RETURNS TRIGGER AS $$
-BEGIN
-  INSERT INTO public.applications (user_id, reference_number, type, status)
-  VALUES (
-    NEW.id,
-    generate_reference_number(),
-    'new',
-    'pending'
-  );
-  RETURN NEW;
-EXCEPTION
-  WHEN OTHERS THEN
-    RETURN NEW;
-END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
-
-DROP TRIGGER IF EXISTS on_profile_created ON public.profiles;
-CREATE TRIGGER on_profile_created
-  AFTER INSERT ON public.profiles
-  FOR EACH ROW EXECUTE FUNCTION create_application_on_signup();
 
 -- =============================================
 -- KYC (Know Your Customer)

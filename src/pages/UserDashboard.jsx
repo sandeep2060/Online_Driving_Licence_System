@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom'
 import { useMemo } from 'react'
 import { useAuth } from '../context/AuthContext.jsx'
 import PageLayout from '../components/PageLayout.jsx'
@@ -121,9 +122,9 @@ function UserDashboard() {
               </div>
             </div>
             <div className="dashboard-actions">
-              <button className="btn btn-secondary" disabled title="KYC feature coming soon">
+              <Link to="/profile" className="btn btn-secondary">
                 View / Complete KYC
-              </button>
+              </Link>
             </div>
           </section>
 
@@ -159,12 +160,16 @@ function UserDashboard() {
             </div>
             <p className="dashboard-note">{examMessage}</p>
             <div className="dashboard-actions">
-              <button className="btn btn-primary" disabled title="Exam feature coming soon">
+              <Link
+                to="/exam"
+                className={`btn btn-primary ${!canGiveExam ? 'btn-disabled' : ''}`}
+                aria-disabled={!canGiveExam}
+              >
                 Go to Exam
-              </button>
-              <button className="btn btn-secondary" disabled title="Practice feature coming soon">
+              </Link>
+              <Link to="/practice" className="btn btn-secondary">
                 Practice Demo Exam
-              </button>
+              </Link>
             </div>
           </section>
 
