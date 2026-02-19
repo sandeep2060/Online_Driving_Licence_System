@@ -7,7 +7,7 @@ import './App.css'
 const NEPAL_TRAFFIC_IMAGES = [
   {
     id: 1,
-    src: 'https://images.unsplash.com/photo-1563453392212-326f5e854473?w=600&q=80',
+    src: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT-9zMaFsT_g-imPv5jFMQn_9MPxOM3naTyYQ&s',
     alt: 'Kathmandu street scene with traffic',
   },
   {
