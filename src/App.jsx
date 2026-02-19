@@ -98,7 +98,7 @@ function App() {
         <nav className="nav">
           <div className="logo">
             <span className="logo-icon">🪪</span>
-            <span className="logo-text">Likhit Exam </span>
+            <span className="logo-text">Likhit Exam</span>
           </div>
           <button
             type="button"
@@ -124,7 +124,7 @@ function App() {
                 title={t.langSwitch}
                 aria-label={t.langSwitch}
               >
-                {language === 'en' ? 'नेपाली' : 'En'}
+                {language === 'en' ? 'नेपाली' : 'English'}
                 </button>
             </li>
             <li><Link to="/login" className="btn-login">{t.nav.signIn}</Link></li>

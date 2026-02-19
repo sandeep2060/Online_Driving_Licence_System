@@ -18,13 +18,19 @@ export function AuthProvider({ children }) {
         .eq('id', userId)
         .single()
       if (error) {
-        console.error('Error fetching profile:', error)
+        // Profile might not exist yet (e.g., during signup before trigger runs)
+        // This is OK - it will be created by the trigger
+        if (error.code !== 'PGRST116') { // PGRST116 = no rows returned
+          console.error('Error fetching profile:', error)
+        }
+        setProfile(null)
         return null
       }
       setProfile(data)
       return data
     } catch (err) {
       console.error('Error fetching profile:', err)
+      setProfile(null)
       return null
     }
   }
@@ -71,6 +77,14 @@ export function AuthProvider({ children }) {
         console.error('Sign up error:', error)
         throw new Error(error.message || 'Failed to sign up. Please check your Supabase configuration.')
       }
+      
+      // If email confirmation is required, the user won't be signed in immediately
+      // The profile will be created by the trigger when they confirm their email
+      if (data.user) {
+        // User is signed in immediately (email confirmation disabled)
+        // Profile will be created by handle_new_user trigger
+      }
+      
       return data
     } catch (err) {
       if (err.message) throw err
@@ -87,6 +101,8 @@ export function AuthProvider({ children }) {
       }
       // Don't update state here—onAuthStateChange is the single source of truth.
       // Listener will fetch profile and update context; we just return success.
+      // Wait a moment for the auth state change to propagate
+      await new Promise(resolve => setTimeout(resolve, 100))
       return { user: data.user }
     } catch (err) {
       if (err.message) throw err

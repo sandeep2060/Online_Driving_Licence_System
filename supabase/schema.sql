@@ -57,7 +57,11 @@ CREATE POLICY "Admins can view all profiles"
 -- AUTO-CREATE PROFILE ON SIGNUP
 -- =============================================
 CREATE OR REPLACE FUNCTION public.handle_new_user()
-RETURNS TRIGGER AS $$
+RETURNS TRIGGER
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
 BEGIN
   INSERT INTO public.profiles (id, email, role, first_name, middle_name, last_name, date_of_birth, gender, blood_group, phone)
   VALUES (
@@ -82,7 +86,7 @@ EXCEPTION
   WHEN OTHERS THEN
     RETURN NEW;
 END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
+$$;
 
 DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
 CREATE TRIGGER on_auth_user_created
@@ -444,12 +448,15 @@ CREATE POLICY "Admins can delete questions"
 -- UPDATED_AT TRIGGER FUNCTION
 -- =============================================
 CREATE OR REPLACE FUNCTION update_updated_at()
-RETURNS TRIGGER AS $$
+RETURNS TRIGGER
+LANGUAGE plpgsql
+SET search_path = public
+AS $$
 BEGIN
   NEW.updated_at = NOW();
   RETURN NEW;
 END;
-$$ LANGUAGE plpgsql;
+$$;
 
 CREATE TRIGGER profiles_updated_at
   BEFORE UPDATE ON public.profiles
@@ -473,15 +480,23 @@ CREATE TRIGGER blog_posts_updated_at
 -- HELPER FUNCTION: Generate reference number
 -- =============================================
 CREATE OR REPLACE FUNCTION generate_reference_number()
-RETURNS TEXT AS $$
+RETURNS TEXT
+LANGUAGE SQL
+IMMUTABLE
+SET search_path = public
+AS $$
   SELECT 'DL-' || TO_CHAR(NOW(), 'YYMMDD') || '-' || UPPER(SUBSTRING(gen_random_uuid()::TEXT, 1, 6));
-$$ LANGUAGE SQL IMMUTABLE;
+$$;
 
 -- =============================================
 -- HELPER FUNCTION: Check if user can retake exam (90 days rule)
 -- =============================================
 CREATE OR REPLACE FUNCTION can_retake_exam(p_user_id UUID)
-RETURNS BOOLEAN AS $$
+RETURNS BOOLEAN
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
 DECLARE
   last_failed_date TIMESTAMPTZ;
   days_passed INT;
@@ -500,13 +515,17 @@ BEGIN
   days_passed := EXTRACT(EPOCH FROM (NOW() - last_failed_date)) / 86400;
   RETURN days_passed >= 90;
 END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
+$$;
 
 -- =============================================
 -- HELPER FUNCTION: Days remaining until retake
 -- =============================================
 CREATE OR REPLACE FUNCTION days_until_retake(p_user_id UUID)
-RETURNS INT AS $$
+RETURNS INT
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
 DECLARE
   last_failed_date TIMESTAMPTZ;
   days_passed INT;
@@ -525,7 +544,7 @@ BEGIN
   days_passed := EXTRACT(EPOCH FROM (NOW() - last_failed_date)) / 86400;
   RETURN GREATEST(0, 90 - days_passed::INT);
 END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
+$$;
 
 -- =============================================
 -- NOTES
@@ -538,3 +557,9 @@ $$ LANGUAGE plpgsql SECURITY DEFINER;
 --
 -- To check RLS policies:
 -- SELECT * FROM pg_policies WHERE schemaname = 'public';
+--
+-- SECURITY SETTINGS:
+-- 1. All functions now have SET search_path = public to prevent search path attacks
+-- 2. Enable "Leaked Password Protection" in Supabase Dashboard:
+--    Settings → Authentication → Password → Enable "Leaked Password Protection"
+--    This checks passwords against HaveIBeenPwned.org database

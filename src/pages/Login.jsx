@@ -8,7 +8,7 @@ import Input from '../components/Input.jsx'
 
 function Login() {
   const { language } = useLanguage()
-  const { signIn, user, role } = useAuth()
+  const { signIn, user, role, loading } = useAuth()
   const navigate = useNavigate()
   const t = translations[language]?.login || translations.en.login
 
@@ -16,6 +16,20 @@ function Login() {
   const [errors, setErrors] = useState({})
   const [submitting, setSubmitting] = useState(false)
   const pendingNavigate = useRef(false)
+  const hasNavigated = useRef(false)
+
+  // Redirect if already logged in
+  useEffect(() => {
+    if (!loading && user && !hasNavigated.current) {
+      hasNavigated.current = true
+      const targetRole = role ?? 'user'
+      if (targetRole === 'admin') {
+        navigate('/admin/dashboard', { replace: true })
+      } else {
+        navigate('/user/dashboard', { replace: true })
+      }
+    }
+  }, [user, role, loading, navigate])
 
   const update = (field, value) => {
     setForm((prev) => ({ ...prev, [field]: value }))
@@ -33,33 +47,46 @@ function Login() {
 
   // Navigate when auth context is ready after sign-in (listener is single source of truth)
   useEffect(() => {
-    if (!pendingNavigate.current || !user) return
-    pendingNavigate.current = false
-    const targetRole = role ?? 'user'
-    if (targetRole === 'admin') {
-      navigate('/admin/dashboard', { replace: true })
-    } else {
-      navigate('/user/dashboard', { replace: true })
-    }
-  }, [user, role, navigate])
+    if (!pendingNavigate.current || !user || loading || hasNavigated.current) return
+    
+    // Wait a bit for profile to load if role is not yet available
+    const timer = setTimeout(() => {
+      if (hasNavigated.current) return
+      hasNavigated.current = true
+      pendingNavigate.current = false
+      const targetRole = role ?? 'user'
+      if (targetRole === 'admin') {
+        navigate('/admin/dashboard', { replace: true })
+      } else {
+        navigate('/user/dashboard', { replace: true })
+      }
+    }, 300)
+
+    return () => clearTimeout(timer)
+  }, [user, role, loading, navigate])
 
   const handleSubmit = async (e) => {
     e.preventDefault()
     if (!validate()) return
     setSubmitting(true)
     setErrors({})
+    hasNavigated.current = false
+    
     try {
-      const result = await signIn(form.email, form.password)
-      if (!result) {
-        throw new Error('Sign in failed. Please try again.')
-      }
+      await signIn(form.email, form.password)
       pendingNavigate.current = true
       // onAuthStateChange will update user/role; useEffect above will navigate
     } catch (err) {
       console.error('Login error:', err)
       setErrors({ password: err.message || 'Invalid email or password' })
+      pendingNavigate.current = false
     } finally {
-      setSubmitting(false)
+      // Don't set submitting to false immediately - wait for navigation
+      setTimeout(() => {
+        if (!hasNavigated.current) {
+          setSubmitting(false)
+        }
+      }, 100)
     }
   }
 
