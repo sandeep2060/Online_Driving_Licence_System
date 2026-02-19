@@ -11,13 +11,24 @@ export function AuthProvider({ children }) {
   const role = profile?.role || null
 
   const fetchProfile = async (userId) => {
-    const { data } = await supabase
-      .from('profiles')
-      .select('*')
-      .eq('id', userId)
-      .single()
-    setProfile(data)
-    return data
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', userId)
+        .single()
+      if (error) {
+        console.error('Error fetching profile:', error)
+        setProfile(null)
+        return null
+      }
+      setProfile(data)
+      return data
+    } catch (err) {
+      console.error('Error fetching profile:', err)
+      setProfile(null)
+      return null
+    }
   }
 
   useEffect(() => {
@@ -40,6 +51,7 @@ export function AuthProvider({ children }) {
       } else {
         setProfile(null)
       }
+      setLoading(false)
     })
 
     return () => subscription.unsubscribe()
