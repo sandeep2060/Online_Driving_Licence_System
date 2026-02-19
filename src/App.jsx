@@ -80,7 +80,7 @@ function App() {
           </div>
           <ul className="nav-links">
             <li><a href="#services">{t.nav.services}</a></li>
-            <li><a href="#faq">{t.nav.faq}</a></li>
+            
             <li><a href="#contact">{t.nav.contact}</a></li>
             <li>
               <button
