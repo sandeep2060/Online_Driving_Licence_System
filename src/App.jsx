@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom'
+import { useEffect, useMemo, useState } from 'react'
 import { useLanguage } from './context/LanguageContext.jsx'
 import { translations } from './translations.js'
 import './App.css'
@@ -11,8 +12,8 @@ const NEPAL_TRAFFIC_IMAGES = [
   },
   {
     id: 2,
-    src: 'https://images.unsplash.com/photo-1552465011-b4e21bf6e79a?w=600&q=80',
-    alt: 'Road in Nepal mountains',
+    src: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRiT4d5ayRKrSREQaItvR5HO7pr9g9FsHo_4Q&s',
+    alt: 'Control by traffic police',
   },
   {
     id: 3,
@@ -34,6 +35,27 @@ const NEPAL_TRAFFIC_IMAGES = [
 function App() {
   const { language, toggleLanguage } = useLanguage()
   const t = translations[language]
+  const [navOpen, setNavOpen] = useState(false)
+  const [slideIndex, setSlideIndex] = useState(0)
+
+  const images = useMemo(() => NEPAL_TRAFFIC_IMAGES, [])
+  const slideCount = images.length
+
+  useEffect(() => {
+    const onResize = () => {
+      if (window.innerWidth >= 768) setNavOpen(false)
+    }
+    window.addEventListener('resize', onResize)
+    return () => window.removeEventListener('resize', onResize)
+  }, [])
+
+  useEffect(() => {
+    if (slideCount <= 1) return undefined
+    const id = window.setInterval(() => {
+      setSlideIndex((prev) => (prev + 1) % slideCount)
+    }, 3500)
+    return () => window.clearInterval(id)
+  }, [slideCount])
 
   const services = [
     {
@@ -78,7 +100,19 @@ function App() {
             <span className="logo-icon">🪪</span>
             <span className="logo-text">DriveLicense</span>
           </div>
-          <ul className="nav-links">
+          <button
+            type="button"
+            className="nav-toggle"
+            aria-label="Toggle navigation"
+            aria-expanded={navOpen}
+            onClick={() => setNavOpen((v) => !v)}
+          >
+            <span className="nav-toggle-bar" />
+            <span className="nav-toggle-bar" />
+            <span className="nav-toggle-bar" />
+          </button>
+
+          <ul className={`nav-links ${navOpen ? 'open' : ''}`}>
             <li><a href="#services">{t.nav.services}</a></li>
             
             <li><a href="#contact">{t.nav.contact}</a></li>
@@ -97,6 +131,8 @@ function App() {
           </ul>
         </nav>
       </header>
+
+      {navOpen && <button type="button" className="nav-backdrop" aria-label="Close navigation" onClick={() => setNavOpen(false)} />}
 
       <main>
         <section className="hero">
@@ -151,12 +187,52 @@ function App() {
         <section id="gallery" className="gallery">
           <h2 className="section-title">{t.gallery.title}</h2>
           <p className="section-subtitle">{t.gallery.subtitle}</p>
-          <div className="gallery-grid">
-            {NEPAL_TRAFFIC_IMAGES.map((img) => (
-              <div key={img.id} className="gallery-item">
-                <img src={img.src} alt={img.alt} loading="lazy" />
+          <div className="slider">
+            <div className="slider-window">
+              <div
+                className="slider-track"
+                style={{ transform: `translateX(-${slideIndex * 100}%)` }}
+              >
+                {images.map((img) => (
+                  <div key={img.id} className="slider-slide">
+                    <img src={img.src} alt={img.alt} loading="lazy" />
+                  </div>
+                ))}
               </div>
-            ))}
+            </div>
+
+            <div className="slider-controls">
+              <button
+                type="button"
+                className="slider-btn"
+                aria-label="Previous image"
+                onClick={() => setSlideIndex((i) => (i - 1 + slideCount) % slideCount)}
+              >
+                ‹
+              </button>
+
+              <div className="slider-dots" role="tablist" aria-label="Image slider">
+                {images.map((img, i) => (
+                  <button
+                    key={img.id}
+                    type="button"
+                    className={`slider-dot ${i === slideIndex ? 'active' : ''}`}
+                    aria-label={`Go to image ${i + 1}`}
+                    aria-pressed={i === slideIndex}
+                    onClick={() => setSlideIndex(i)}
+                  />
+                ))}
+              </div>
+
+              <button
+                type="button"
+                className="slider-btn"
+                aria-label="Next image"
+                onClick={() => setSlideIndex((i) => (i + 1) % slideCount)}
+              >
+                ›
+              </button>
+            </div>
           </div>
         </section>
 
