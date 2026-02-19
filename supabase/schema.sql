@@ -18,6 +18,7 @@ CREATE TABLE IF NOT EXISTS public.profiles (
   first_name TEXT,
   middle_name TEXT,
   last_name TEXT,
+  nepali_name TEXT,
   date_of_birth DATE,
   gender TEXT CHECK (gender IN ('male', 'female', 'other')),
   blood_group TEXT,
@@ -50,11 +51,11 @@ CREATE POLICY "Admins can view all profiles"
   );
 
 -- Auto-create profile on signup (via trigger)
--- Pass metadata in signUp: { data: { first_name, last_name, ... } }
+-- Pass metadata in signUp: { data: { first_name, last_name, nepali_name, ... } }
 CREATE OR REPLACE FUNCTION public.handle_new_user()
 RETURNS TRIGGER AS $$
 BEGIN
-  INSERT INTO public.profiles (id, email, role, first_name, middle_name, last_name, date_of_birth, gender, blood_group, phone)
+  INSERT INTO public.profiles (id, email, role, first_name, middle_name, last_name, nepali_name, date_of_birth, gender, blood_group, phone)
   VALUES (
     NEW.id,
     NEW.email,
@@ -62,6 +63,7 @@ BEGIN
     NEW.raw_user_meta_data->>'first_name',
     NEW.raw_user_meta_data->>'middle_name',
     NEW.raw_user_meta_data->>'last_name',
+    NEW.raw_user_meta_data->>'nepali_name',
     (NEW.raw_user_meta_data->>'date_of_birth')::DATE,
     NEW.raw_user_meta_data->>'gender',
     NEW.raw_user_meta_data->>'blood_group',
