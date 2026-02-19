@@ -33,50 +33,79 @@ export function AuthProvider({ children }) {
 
   useEffect(() => {
     supabase.auth.getSession().then(async ({ data: { session } }) => {
-      setUser(session?.user ?? null)
-      if (session?.user) {
-        await fetchProfile(session.user.id)
-      } else {
+      try {
+        setUser(session?.user ?? null)
+        if (session?.user) {
+          await fetchProfile(session.user.id)
+        } else {
+          setProfile(null)
+        }
+      } catch (err) {
+        console.error('Error in getSession:', err)
+        setUser(null)
         setProfile(null)
+      } finally {
+        setLoading(false)
       }
+    }).catch(err => {
+      console.error('Error getting session:', err)
       setLoading(false)
     })
 
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(async (_event, session) => {
-      setUser(session?.user ?? null)
-      if (session?.user) {
-        await fetchProfile(session.user.id)
-      } else {
+      try {
+        setUser(session?.user ?? null)
+        if (session?.user) {
+          await fetchProfile(session.user.id)
+        } else {
+          setProfile(null)
+        }
+      } catch (err) {
+        console.error('Error in auth state change:', err)
+        setUser(null)
         setProfile(null)
+      } finally {
+        setLoading(false)
       }
-      setLoading(false)
     })
 
     return () => subscription.unsubscribe()
   }, [])
 
   const signUp = async ({ email, password, ...metadata }) => {
-    const { data, error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        data: {
-          ...metadata,
-          role: 'user',
+    try {
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: {
+            ...metadata,
+            role: 'user',
+          },
         },
-      },
-    })
-    if (error) throw error
-    return data
+      })
+      if (error) throw error
+      return data
+    } catch (err) {
+      console.error('Sign up error:', err)
+      throw err
+    }
   }
 
   const signIn = async (email, password) => {
-    const { data, error } = await supabase.auth.signInWithPassword({ email, password })
-    if (error) throw error
-    const prof = await fetchProfile(data.user.id)
-    return { user: data.user, profile: prof }
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({ email, password })
+      if (error) throw error
+      // Add a small delay to allow auth state to settle
+      await new Promise(resolve => setTimeout(resolve, 500))
+      const prof = await fetchProfile(data.user.id)
+      return { user: data.user, profile: prof }
+    } catch (err) {
+      console.error('Sign in error:', err)
+      throw err
+    }
   }
 
   const signOut = async () => {
