@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect } from 'react'
+import { createContext, useContext, useState, useEffect, useRef } from 'react'
 import { supabase } from '../lib/supabase.js'
 
 const AuthContext = createContext(null)
@@ -7,33 +7,52 @@ export function AuthProvider({ children }) {
   const [user, setUser] = useState(null)
   const [profile, setProfile] = useState(null)
   const [loading, setLoading] = useState(true)
+  const profileRequestRef = useRef(new Map())
 
   const role = profile?.role || null
 
   const fetchProfile = async (userId) => {
-    try {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', userId)
-        .single()
-      if (error) {
-        console.error('Error fetching profile:', error)
+    if (!userId) return null
+
+    // If a request for this user is already pending, return that promise
+    if (profileRequestRef.current.has(userId)) {
+      return profileRequestRef.current.get(userId)
+    }
+
+    const promise = (async () => {
+      try {
+        const { data, error } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', userId)
+          .single()
+        if (error) {
+          console.error('Error fetching profile:', error)
+          setProfile(null)
+          return null
+        }
+        setProfile(data)
+        return data
+      } catch (err) {
+        console.error('Error fetching profile:', err)
         setProfile(null)
         return null
+      } finally {
+        profileRequestRef.current.delete(userId)
       }
-      setProfile(data)
-      return data
-    } catch (err) {
-      console.error('Error fetching profile:', err)
-      setProfile(null)
-      return null
-    }
+    })()
+
+    profileRequestRef.current.set(userId, promise)
+    return promise
   }
 
   useEffect(() => {
-    supabase.auth.getSession().then(async ({ data: { session } }) => {
+    let isMounted = true
+    const timeoutId = setTimeout(async () => {
       try {
+        const { data: { session } } = await supabase.auth.getSession()
+        if (!isMounted) return
+        
         setUser(session?.user ?? null)
         if (session?.user) {
           await fetchProfile(session.user.id)
@@ -42,19 +61,18 @@ export function AuthProvider({ children }) {
         }
       } catch (err) {
         console.error('Error in getSession:', err)
-        setUser(null)
-        setProfile(null)
+        if (isMounted) {
+          setUser(null)
+          setProfile(null)
+        }
       } finally {
-        setLoading(false)
+        if (isMounted) setLoading(false)
       }
-    }).catch(err => {
-      console.error('Error getting session:', err)
-      setLoading(false)
-    })
+    }, 0)
 
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange(async (_event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
+      if (!isMounted) return
+      
       try {
         setUser(session?.user ?? null)
         if (session?.user) {
@@ -62,16 +80,22 @@ export function AuthProvider({ children }) {
         } else {
           setProfile(null)
         }
+        setLoading(false)
       } catch (err) {
         console.error('Error in auth state change:', err)
-        setUser(null)
-        setProfile(null)
-      } finally {
-        setLoading(false)
+        if (isMounted) {
+          setUser(null)
+          setProfile(null)
+          setLoading(false)
+        }
       }
     })
 
-    return () => subscription.unsubscribe()
+    return () => {
+      isMounted = false
+      clearTimeout(timeoutId)
+      subscription?.unsubscribe()
+    }
   }, [])
 
   const signUp = async ({ email, password, ...metadata }) => {
@@ -98,10 +122,15 @@ export function AuthProvider({ children }) {
     try {
       const { data, error } = await supabase.auth.signInWithPassword({ email, password })
       if (error) throw error
-      // Add a small delay to allow auth state to settle
-      await new Promise(resolve => setTimeout(resolve, 500))
-      const prof = await fetchProfile(data.user.id)
-      return { user: data.user, profile: prof }
+      
+      // Longer delay to ensure lock is properly released and session is stable
+      await new Promise(resolve => setTimeout(resolve, 1000))
+      
+      if (data?.user?.id) {
+        const prof = await fetchProfile(data.user.id)
+        return { user: data.user, profile: prof }
+      }
+      return { user: data.user, profile: null }
     } catch (err) {
       console.error('Sign in error:', err)
       throw err
@@ -109,9 +138,15 @@ export function AuthProvider({ children }) {
   }
 
   const signOut = async () => {
-    await supabase.auth.signOut()
-    setUser(null)
-    setProfile(null)
+    try {
+      await supabase.auth.signOut()
+    } catch (err) {
+      console.error('Sign out error:', err)
+    } finally {
+      setUser(null)
+      setProfile(null)
+      profileRequestRef.current.clear()
+    }
   }
 
   const value = {
