@@ -172,6 +172,29 @@ CREATE TRIGGER applications_updated_at
   BEFORE UPDATE ON public.applications
   FOR EACH ROW EXECUTE FUNCTION update_updated_at();
 
+-- Auto-create application when user signs up
+CREATE OR REPLACE FUNCTION create_application_on_signup()
+RETURNS TRIGGER AS $$
+BEGIN
+  INSERT INTO public.applications (user_id, reference_number, type, status)
+  VALUES (
+    NEW.id,
+    generate_reference_number(),
+    'new',
+    'pending'
+  );
+  RETURN NEW;
+EXCEPTION
+  WHEN OTHERS THEN
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+DROP TRIGGER IF EXISTS on_profile_created ON public.profiles;
+CREATE TRIGGER on_profile_created
+  AFTER INSERT ON public.profiles
+  FOR EACH ROW EXECUTE FUNCTION create_application_on_signup();
+
 -- =============================================
 -- KYC (Know Your Customer)
 -- =============================================
