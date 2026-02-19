@@ -98,7 +98,7 @@ function App() {
         <nav className="nav">
           <div className="logo">
             <span className="logo-icon">🪪</span>
-            <span className="logo-text">DriveLicense</span>
+            <span className="logo-text">Likhit Exam </span>
           </div>
           <button
             type="button"
@@ -255,7 +255,7 @@ function App() {
           <div className="footer-content">
             <div className="footer-brand">
               <span className="logo-icon">🪪</span>
-              <span>DriveLicense</span>
+              <span>admin@gmail.com</span>
             </div>
             <div className="footer-links">
               <a href="#">{t.footer.privacy}</a>

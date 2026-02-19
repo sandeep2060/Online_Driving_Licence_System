@@ -169,3 +169,190 @@ CREATE TRIGGER profiles_updated_at
 CREATE TRIGGER applications_updated_at
   BEFORE UPDATE ON public.applications
   FOR EACH ROW EXECUTE FUNCTION update_updated_at();
+
+-- =============================================
+-- KYC (Know Your Customer)
+-- =============================================
+CREATE TABLE IF NOT EXISTS public.kyc (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  status TEXT NOT NULL DEFAULT 'pending' CHECK (status IN ('pending','submitted','verified','rejected')),
+  personal JSONB,    -- name, dob, gender, blood group, phone, email
+  address JSONB,     -- province, district, municipality, ward, street
+  documents JSONB,   -- citizenship, licence, etc.
+  vehicle_types TEXT[], -- Nepal licence categories (A, B, C, K, etc.)
+  submitted_at TIMESTAMPTZ DEFAULT NOW(),
+  reviewed_at TIMESTAMPTZ,
+  reviewed_by UUID REFERENCES auth.users(id)
+);
+
+ALTER TABLE public.kyc ENABLE ROW LEVEL SECURITY;
+
+-- Users: view and upsert own KYC
+CREATE POLICY "Users can view own KYC"
+  ON public.kyc FOR SELECT
+  USING (auth.uid() = user_id);
+
+CREATE POLICY "Users can insert own KYC"
+  ON public.kyc FOR INSERT
+  WITH CHECK (auth.uid() = user_id);
+
+CREATE POLICY "Users can update own KYC when not verified"
+  ON public.kyc FOR UPDATE
+  USING (auth.uid() = user_id AND status IN ('pending','rejected'))
+  WITH CHECK (auth.uid() = user_id);
+
+-- Admins: view all, review KYC
+CREATE POLICY "Admins can view all KYC"
+  ON public.kyc FOR SELECT
+  USING (
+    EXISTS (
+      SELECT 1 FROM public.profiles
+      WHERE id = auth.uid() AND role = 'admin'
+    )
+  );
+
+CREATE POLICY "Admins can review KYC"
+  ON public.kyc FOR UPDATE
+  USING (
+    EXISTS (
+      SELECT 1 FROM public.profiles
+      WHERE id = auth.uid() AND role = 'admin'
+    )
+  );
+
+-- =============================================
+-- EXAMS
+-- =============================================
+CREATE TABLE IF NOT EXISTS public.exams (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  status TEXT NOT NULL CHECK (status IN ('not_started','in_progress','passed','failed')),
+  score INT,
+  categories TEXT[], -- vehicle categories for this exam
+  attempted_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+ALTER TABLE public.exams ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Users can view own exams"
+  ON public.exams FOR SELECT
+  USING (auth.uid() = user_id);
+
+CREATE POLICY "Users can insert own exams"
+  ON public.exams FOR INSERT
+  WITH CHECK (auth.uid() = user_id);
+
+CREATE POLICY "Admins can view all exams"
+  ON public.exams FOR SELECT
+  USING (
+    EXISTS (
+      SELECT 1 FROM public.profiles
+      WHERE id = auth.uid() AND role = 'admin'
+    )
+  );
+
+-- =============================================
+-- LICENCES
+-- =============================================
+CREATE TABLE IF NOT EXISTS public.licences (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  card_number TEXT UNIQUE,
+  categories TEXT[],
+  issued_at DATE,
+  expires_at DATE
+);
+
+ALTER TABLE public.licences ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Users can view own licences"
+  ON public.licences FOR SELECT
+  USING (auth.uid() = user_id);
+
+-- Typically only admins/authority issue or modify licences
+CREATE POLICY "Admins can manage licences"
+  ON public.licences FOR INSERT, UPDATE
+  USING (
+    EXISTS (
+      SELECT 1 FROM public.profiles
+      WHERE id = auth.uid() AND role = 'admin'
+    )
+  )
+  WITH CHECK (
+    EXISTS (
+      SELECT 1 FROM public.profiles
+      WHERE id = auth.uid() AND role = 'admin'
+    )
+  );
+
+-- =============================================
+-- BLOG POSTS (Notices)
+-- =============================================
+CREATE TABLE IF NOT EXISTS public.blog_posts (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  title TEXT NOT NULL,
+  image_url TEXT,
+  body TEXT,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+ALTER TABLE public.blog_posts ENABLE ROW LEVEL SECURITY;
+
+-- Everyone can read notices/blog posts
+CREATE POLICY "Anyone can read blog posts"
+  ON public.blog_posts FOR SELECT
+  USING (TRUE);
+
+-- Only admins can create/update/delete posts
+CREATE POLICY "Admins can manage blog posts"
+  ON public.blog_posts FOR INSERT, UPDATE, DELETE
+  USING (
+    EXISTS (
+      SELECT 1 FROM public.profiles
+      WHERE id = auth.uid() AND role = 'admin'
+    )
+  )
+  WITH CHECK (
+    EXISTS (
+      SELECT 1 FROM public.profiles
+      WHERE id = auth.uid() AND role = 'admin'
+    )
+  );
+
+-- =============================================
+-- QUESTIONS (Exam question bank)
+-- =============================================
+CREATE TABLE IF NOT EXISTS public.questions (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  language TEXT NOT NULL CHECK (language IN ('en','ne','image')),
+  question_text TEXT,
+  question_image_url TEXT,
+  options JSONB NOT NULL, -- array of 4 options [{ text?, image_url? }, ...]
+  correct_index INT NOT NULL CHECK (correct_index BETWEEN 0 AND 3),
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+ALTER TABLE public.questions ENABLE ROW LEVEL SECURITY;
+
+-- Everyone can read questions (for practice / exam)
+CREATE POLICY "Anyone can read questions"
+  ON public.questions FOR SELECT
+  USING (TRUE);
+
+-- Only admins can manage questions
+CREATE POLICY "Admins can manage questions"
+  ON public.questions FOR INSERT, UPDATE, DELETE
+  USING (
+    EXISTS (
+      SELECT 1 FROM public.profiles
+      WHERE id = auth.uid() AND role = 'admin'
+    )
+  )
+  WITH CHECK (
+    EXISTS (
+      SELECT 1 FROM public.profiles
+      WHERE id = auth.uid() AND role = 'admin'
+    )
+  );
+
