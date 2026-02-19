@@ -5,7 +5,12 @@ import NepaliDate from 'nepali-date-converter'
  * Date input with auto BS/AD conversion.
  * User can enter in either format; the other updates automatically.
  */
-function DateInputBSAD({ value, onChange, required }) {
+import { useId } from 'react'
+
+function DateInputBSAD({ value, onChange, required, id, name }) {
+  const generatedId = useId()
+  const inputId = id || generatedId
+  const inputName = name || 'date_of_birth'
   const [inputMode, setInputMode] = useState('AD')
   const [inputValue, setInputValue] = useState('')
   const [convertedDisplay, setConvertedDisplay] = useState('')
@@ -108,6 +113,8 @@ function DateInputBSAD({ value, onChange, required }) {
       <div className="date-input-row">
         <input
           type="text"
+          id={inputId}
+          name={inputName}
           value={inputValue}
           onChange={handleChange}
           placeholder={inputMode === 'AD' ? 'AD: YYYY-MM-DD' : 'BS: YYYY-MM-DD'}

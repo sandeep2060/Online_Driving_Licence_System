@@ -36,13 +36,19 @@ function Login() {
     setSubmitting(true)
     setErrors({})
     try {
-      const { profile } = await signIn(form.email, form.password)
-      if (profile?.role === 'admin') {
-        navigate('/admin/dashboard')
+      const result = await signIn(form.email, form.password)
+      if (!result) {
+        throw new Error('Sign in failed. Please try again.')
+      }
+      // Small delay to ensure state updates
+      await new Promise((resolve) => setTimeout(resolve, 100))
+      if (result.profile?.role === 'admin') {
+        navigate('/admin/dashboard', { replace: true })
       } else {
-        navigate('/user/dashboard')
+        navigate('/user/dashboard', { replace: true })
       }
     } catch (err) {
+      console.error('Login error:', err)
       setErrors({ password: err.message || 'Invalid email or password' })
     } finally {
       setSubmitting(false)
@@ -60,21 +66,27 @@ function Login() {
           <Input
             label={t.email}
             type="email"
+            id="login-email"
+            name="email"
             value={form.email}
             onChange={(e) => update('email', e.target.value)}
             error={errors.email}
             placeholder="email@example.com"
             required
+            autoComplete="email"
           />
 
           <Input
             label={t.password}
             type="password"
+            id="login-password"
+            name="password"
             value={form.password}
             onChange={(e) => update('password', e.target.value)}
             error={errors.password}
             placeholder="••••••••"
             required
+            autoComplete="current-password"
           />
 
           <button type="submit" className="btn btn-primary btn-full" disabled={submitting}>

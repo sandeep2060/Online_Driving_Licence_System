@@ -1,8 +1,20 @@
-function Checkbox({ label, description, error, ...props }) {
+import { useId } from 'react'
+
+function Checkbox({ label, description, error, id, name, ...props }) {
+  const generatedId = useId()
+  const checkboxId = id || generatedId
+  const checkboxName = name || checkboxId
+
   return (
     <div className="form-group form-checkbox-group">
-      <label className="checkbox-label">
-        <input type="checkbox" className="form-checkbox" {...props} />
+      <label htmlFor={checkboxId} className="checkbox-label">
+        <input
+          type="checkbox"
+          id={checkboxId}
+          name={checkboxName}
+          className="form-checkbox"
+          {...props}
+        />
         <span className="checkbox-text">
           {label}
           {description && <span className="checkbox-desc">{description}</span>}

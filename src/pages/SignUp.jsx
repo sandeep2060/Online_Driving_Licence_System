@@ -121,7 +121,7 @@ function SignUp() {
         title: 'Account created',
         message: 'Your account was created successfully. Redirecting to login…',
       })
-      setTimeout(() => navigate('/login'), 2000)
+      setTimeout(() => navigate('/login', { replace: true }), 2000)
     } catch (err) {
       setErrors({ email: err.message || 'Sign up failed' })
       setNotification({
@@ -154,38 +154,51 @@ function SignUp() {
           <div className="form-row form-row-3">
             <Input
               label={t.firstName}
+              id="signup-firstname"
+              name="first_name"
               value={form.firstName}
               onChange={(e) => update('firstName', e.target.value)}
               error={errors.firstName}
               required
               placeholder="John"
+              autoComplete="given-name"
             />
             <Input
               label={t.middleName}
+              id="signup-middlename"
+              name="middle_name"
               value={form.middleName}
               onChange={(e) => update('middleName', e.target.value)}
               placeholder="Optional"
+              autoComplete="additional-name"
             />
             <Input
               label={t.lastName}
+              id="signup-lastname"
+              name="last_name"
               value={form.lastName}
               onChange={(e) => update('lastName', e.target.value)}
               error={errors.lastName}
               required
               placeholder="Doe"
+              autoComplete="family-name"
             />
           </div>
 
           <Input
             label={t.nepaliName}
+            id="signup-nepaliname"
+            name="nepali_name"
             value={form.nepaliName}
             onChange={(e) => update('nepaliName', e.target.value)}
             placeholder={language === 'ne' ? 'पूर्ण नाम नेपालीमा' : 'e.g. रमेश केसी'}
           />
 
           <div className="form-group">
-            <label className="form-label">{t.dob}</label>
+            <label htmlFor="signup-dob" className="form-label">{t.dob}</label>
             <DateInputBSAD
+              id="signup-dob"
+              name="date_of_birth"
               value={form.dob}
               onChange={(v) => update('dob', v)}
               required
@@ -196,6 +209,8 @@ function SignUp() {
           <div className="form-row form-row-2">
             <Select
               label={t.gender}
+              id="signup-gender"
+              name="gender"
               value={form.gender}
               onChange={(e) => update('gender', e.target.value)}
               options={GENDER_OPTIONS}
@@ -205,6 +220,8 @@ function SignUp() {
             />
             <Select
               label={t.bloodGroup}
+              id="signup-bloodgroup"
+              name="blood_group"
               value={form.bloodGroup}
               onChange={(e) => update('bloodGroup', e.target.value)}
               options={BLOOD_GROUP_OPTIONS}
@@ -217,46 +234,60 @@ function SignUp() {
           <Input
             label={t.phone}
             type="tel"
+            id="signup-phone"
+            name="phone"
             value={form.phone}
             onChange={(e) => update('phone', e.target.value)}
             error={errors.phone}
             placeholder="+977 98XXXXXXXX"
             required
+            autoComplete="tel"
           />
 
           <Input
             label={t.email}
             type="email"
+            id="signup-email"
+            name="email"
             value={form.email}
             onChange={(e) => update('email', e.target.value)}
             error={errors.email}
             placeholder="john@example.com"
             required
+            autoComplete="email"
           />
 
           <div className="form-row form-row-2">
             <Input
               label={t.password}
               type="password"
+              id="signup-password"
+              name="password"
               value={form.password}
               onChange={(e) => update('password', e.target.value)}
               error={errors.password}
               placeholder="Min 6 characters"
               required
+              autoComplete="new-password"
             />
             <Input
               label={t.confirmPassword}
               type="password"
+              id="signup-confirmpassword"
+              name="confirm_password"
               value={form.confirmPassword}
               onChange={(e) => update('confirmPassword', e.target.value)}
               error={errors.confirmPassword}
               placeholder="Re-enter password"
               required
+              autoComplete="new-password"
             />
           </div>
 
           <Checkbox
             label={t.termsExam}
+            id="signup-termsexam"
+            name="terms_exam"
             checked={form.termsExam}
             onChange={(e) => update('termsExam', e.target.checked)}
             error={errors.termsExam}
@@ -264,6 +295,8 @@ function SignUp() {
 
           <Checkbox
             label={t.termsSystem}
+            id="signup-termssystem"
+            name="terms_system"
             checked={form.termsSystem}
             onChange={(e) => update('termsSystem', e.target.checked)}
             error={errors.termsSystem}
