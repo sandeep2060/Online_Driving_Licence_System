@@ -49,6 +49,7 @@ export function AuthProvider({ children }) {
       } else {
         setProfile(null)
       }
+      setLoading(false)
     })
 
     return () => subscription.unsubscribe()
@@ -84,11 +85,9 @@ export function AuthProvider({ children }) {
         console.error('Sign in error:', error)
         throw new Error(error.message || 'Invalid email or password')
       }
-      const prof = await fetchProfile(data.user.id)
-      setUser(data.user)
-      setProfile(prof)
-      setLoading(false)
-      return { user: data.user, profile: prof }
+      // Don't update state here—onAuthStateChange is the single source of truth.
+      // Listener will fetch profile and update context; we just return success.
+      return { user: data.user }
     } catch (err) {
       if (err.message) throw err
       throw new Error('Failed to sign in. Please check your Supabase configuration.')

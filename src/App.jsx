@@ -124,8 +124,8 @@ function App() {
                 title={t.langSwitch}
                 aria-label={t.langSwitch}
               >
-                {language === 'en' ? 'नेपाली' : 'English'}
-              </button>
+                {language === 'en' ? 'नेपाली' : 'En'}
+                </button>
             </li>
             <li><Link to="/login" className="btn-login">{t.nav.signIn}</Link></li>
           </ul>

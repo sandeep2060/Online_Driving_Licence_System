@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useLanguage } from '../context/LanguageContext.jsx'
 import { useAuth } from '../context/AuthContext.jsx'
@@ -8,13 +8,14 @@ import Input from '../components/Input.jsx'
 
 function Login() {
   const { language } = useLanguage()
-  const { signIn } = useAuth()
+  const { signIn, user, role } = useAuth()
   const navigate = useNavigate()
   const t = translations[language]?.login || translations.en.login
 
   const [form, setForm] = useState({ email: '', password: '' })
   const [errors, setErrors] = useState({})
   const [submitting, setSubmitting] = useState(false)
+  const pendingNavigate = useRef(false)
 
   const update = (field, value) => {
     setForm((prev) => ({ ...prev, [field]: value }))
@@ -30,6 +31,18 @@ function Login() {
     return Object.keys(e).length === 0
   }
 
+  // Navigate when auth context is ready after sign-in (listener is single source of truth)
+  useEffect(() => {
+    if (!pendingNavigate.current || !user) return
+    pendingNavigate.current = false
+    const targetRole = role ?? 'user'
+    if (targetRole === 'admin') {
+      navigate('/admin/dashboard', { replace: true })
+    } else {
+      navigate('/user/dashboard', { replace: true })
+    }
+  }, [user, role, navigate])
+
   const handleSubmit = async (e) => {
     e.preventDefault()
     if (!validate()) return
@@ -40,13 +53,8 @@ function Login() {
       if (!result) {
         throw new Error('Sign in failed. Please try again.')
       }
-      // Small delay to ensure state updates
-      await new Promise((resolve) => setTimeout(resolve, 100))
-      if (result.profile?.role === 'admin') {
-        navigate('/admin/dashboard', { replace: true })
-      } else {
-        navigate('/user/dashboard', { replace: true })
-      }
+      pendingNavigate.current = true
+      // onAuthStateChange will update user/role; useEffect above will navigate
     } catch (err) {
       console.error('Login error:', err)
       setErrors({ password: err.message || 'Invalid email or password' })
