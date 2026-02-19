@@ -85,6 +85,9 @@ export function AuthProvider({ children }) {
         throw new Error(error.message || 'Invalid email or password')
       }
       const prof = await fetchProfile(data.user.id)
+      setUser(data.user)
+      setProfile(prof)
+      setLoading(false)
       return { user: data.user, profile: prof }
     } catch (err) {
       if (err.message) throw err

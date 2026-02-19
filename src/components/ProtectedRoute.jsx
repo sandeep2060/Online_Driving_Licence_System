@@ -19,9 +19,15 @@ function ProtectedRoute({ children, requiredRole }) {
     return <Navigate to="/login" state={{ from: location }} replace />
   }
 
-  if (requiredRole && role !== requiredRole) {
-    if (role === 'admin') return <Navigate to="/admin/dashboard" replace />
+  // Role-based redirects:
+  // - Admin route: only admins allowed; others go to user dashboard
+  // - User route: admins are redirected to admin dashboard; other authenticated users are allowed
+  if (requiredRole === 'admin' && role !== 'admin') {
     return <Navigate to="/user/dashboard" replace />
+  }
+
+  if (requiredRole === 'user' && role === 'admin') {
+    return <Navigate to="/admin/dashboard" replace />
   }
 
   return children
