@@ -271,8 +271,20 @@ CREATE POLICY "Users can view own licences"
   USING (auth.uid() = user_id);
 
 -- Typically only admins/authority issue or modify licences
-CREATE POLICY "Admins can manage licences"
-  ON public.licences FOR INSERT, UPDATE
+
+-- INSERT policy for licences (admins only)
+CREATE POLICY "Admins can insert licences"
+  ON public.licences FOR INSERT
+  WITH CHECK (
+    EXISTS (
+      SELECT 1 FROM public.profiles
+      WHERE id = auth.uid() AND role = 'admin'
+    )
+  );
+
+-- UPDATE policy for licences (admins only)
+CREATE POLICY "Admins can update licences"
+  ON public.licences FOR UPDATE
   USING (
     EXISTS (
       SELECT 1 FROM public.profiles
@@ -305,8 +317,17 @@ CREATE POLICY "Anyone can read blog posts"
   USING (TRUE);
 
 -- Only admins can create/update/delete posts
-CREATE POLICY "Admins can manage blog posts"
-  ON public.blog_posts FOR INSERT, UPDATE, DELETE
+CREATE POLICY "Admins can insert blog posts"
+  ON public.blog_posts FOR INSERT
+  WITH CHECK (
+    EXISTS (
+      SELECT 1 FROM public.profiles
+      WHERE id = auth.uid() AND role = 'admin'
+    )
+  );
+
+CREATE POLICY "Admins can update blog posts"
+  ON public.blog_posts FOR UPDATE
   USING (
     EXISTS (
       SELECT 1 FROM public.profiles
@@ -314,6 +335,15 @@ CREATE POLICY "Admins can manage blog posts"
     )
   )
   WITH CHECK (
+    EXISTS (
+      SELECT 1 FROM public.profiles
+      WHERE id = auth.uid() AND role = 'admin'
+    )
+  );
+
+CREATE POLICY "Admins can delete blog posts"
+  ON public.blog_posts FOR DELETE
+  USING (
     EXISTS (
       SELECT 1 FROM public.profiles
       WHERE id = auth.uid() AND role = 'admin'
@@ -341,8 +371,17 @@ CREATE POLICY "Anyone can read questions"
   USING (TRUE);
 
 -- Only admins can manage questions
-CREATE POLICY "Admins can manage questions"
-  ON public.questions FOR INSERT, UPDATE, DELETE
+CREATE POLICY "Admins can insert questions"
+  ON public.questions FOR INSERT
+  WITH CHECK (
+    EXISTS (
+      SELECT 1 FROM public.profiles
+      WHERE id = auth.uid() AND role = 'admin'
+    )
+  );
+
+CREATE POLICY "Admins can update questions"
+  ON public.questions FOR UPDATE
   USING (
     EXISTS (
       SELECT 1 FROM public.profiles
@@ -350,6 +389,15 @@ CREATE POLICY "Admins can manage questions"
     )
   )
   WITH CHECK (
+    EXISTS (
+      SELECT 1 FROM public.profiles
+      WHERE id = auth.uid() AND role = 'admin'
+    )
+  );
+
+CREATE POLICY "Admins can delete questions"
+  ON public.questions FOR DELETE
+  USING (
     EXISTS (
       SELECT 1 FROM public.profiles
       WHERE id = auth.uid() AND role = 'admin'
