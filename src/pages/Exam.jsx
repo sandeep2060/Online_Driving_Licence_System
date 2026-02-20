@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { useLanguage } from '../context/LanguageContext.jsx'
 import { useAuth } from '../context/AuthContext.jsx'
 import { supabase } from '../lib/supabase.js'
-import PageLayout from '../components/PageLayout.jsx'
+import DashboardLayout from '../components/DashboardLayout.jsx'
 import { translations } from '../translations.js'
 import ProtectedRoute from '../components/ProtectedRoute.jsx'
 
@@ -139,39 +139,40 @@ function Exam() {
 
   if (loading) {
     return (
-      <PageLayout>
-        <div className="page page-exam">
-          <div className="page-card">
+      <DashboardLayout>
+        <div className="user-page gov-page gov-exam-page">
+          <div className="gov-page-loading">
+            <div className="spinner"></div>
             <p>{t.loading}</p>
           </div>
         </div>
-      </PageLayout>
+      </DashboardLayout>
     )
   }
 
   if (error) {
     return (
-      <PageLayout>
-        <div className="page page-exam">
-          <div className="page-card">
-            <p className="error-message">{error}</p>
-            <button className="btn btn-primary" onClick={loadQuestions}>
+      <DashboardLayout>
+        <div className="user-page gov-page gov-exam-page">
+          <div className="gov-page-card gov-card--centered">
+            <p className="gov-error-text">{error}</p>
+            <button className="gov-btn gov-btn-primary" onClick={loadQuestions}>
               {t.retry}
             </button>
-            <button className="btn btn-secondary" onClick={() => navigate('/user/dashboard')}>
+            <button className="gov-btn gov-btn-secondary" onClick={() => navigate('/user/dashboard')}>
               {t.backToDashboard}
             </button>
           </div>
         </div>
-      </PageLayout>
+      </DashboardLayout>
     )
   }
 
   if (!examStarted) {
     return (
-      <PageLayout>
-        <div className="page page-exam">
-          <div className="page-card">
+      <DashboardLayout>
+        <div className="user-page gov-page gov-exam-page">
+          <div className="gov-page-card">
             <h1 className="page-title">{t.examRules}</h1>
             <div className="exam-rules">
               <ul>
@@ -182,30 +183,30 @@ function Exam() {
                 <li>{t.rule5}</li>
               </ul>
             </div>
-            <div className="exam-actions">
-              <button className="btn btn-primary btn-full" onClick={handleStartExam}>
+            <div className="gov-form-actions gov-form-actions--col">
+              <button className="gov-btn gov-btn-primary gov-btn-full" onClick={handleStartExam}>
                 {t.startExam}
               </button>
-              <button className="btn btn-secondary btn-full" onClick={() => navigate('/user/dashboard')}>
+              <button className="gov-btn gov-btn-secondary gov-btn-full" onClick={() => navigate('/user/dashboard')}>
                 {t.cancel}
               </button>
             </div>
           </div>
         </div>
-      </PageLayout>
+      </DashboardLayout>
     )
   }
 
   if (examSubmitted) {
     return (
-      <PageLayout>
-        <div className="page page-exam">
-          <div className="page-card">
-            <h1 className="page-title">{t.submitting}</h1>
+      <DashboardLayout>
+        <div className="user-page gov-page gov-exam-page">
+          <div className="gov-page-card">
+            <h1 className="gov-page-title">{t.submitting}</h1>
             <p>{t.submittingMessage}</p>
           </div>
         </div>
-      </PageLayout>
+      </DashboardLayout>
     )
   }
 
@@ -214,9 +215,9 @@ function Exam() {
   const answeredCount = Object.keys(answers).length
 
   return (
-    <PageLayout>
-      <div className="page page-exam">
-        <div className="page-card">
+    <DashboardLayout>
+      <div className="user-page gov-page gov-exam-page">
+        <div className="gov-page-card">
           <div className="exam-header">
             <div className="exam-timer">
               <span className={`timer-text ${timeRemaining < 300 ? 'timer-warning' : ''}`}>
@@ -273,7 +274,7 @@ function Exam() {
 
           <div className="exam-navigation">
             <button
-              className="btn btn-secondary"
+              className="gov-btn gov-btn-secondary"
               onClick={() => setCurrentIndex((prev) => Math.max(0, prev - 1))}
               disabled={currentIndex === 0}
             >
@@ -293,12 +294,12 @@ function Exam() {
               ))}
             </div>
             {currentIndex === questions.length - 1 ? (
-              <button className="btn btn-primary" onClick={handleSubmit}>
+              <button className="gov-btn gov-btn-primary" onClick={handleSubmit}>
                 {t.submit}
               </button>
             ) : (
               <button
-                className="btn btn-primary"
+                className="gov-btn gov-btn-primary"
                 onClick={() => setCurrentIndex((prev) => Math.min(questions.length - 1, prev + 1))}
               >
                 {t.next}
@@ -307,7 +308,7 @@ function Exam() {
           </div>
         </div>
       </div>
-    </PageLayout>
+    </DashboardLayout>
   )
 }
 

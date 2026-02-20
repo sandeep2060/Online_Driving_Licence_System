@@ -131,8 +131,9 @@ function AdminBlog() {
   if (loading) {
     return (
       <AdminLayout>
-        <div className="page page-admin">
-          <div className="page-card">
+        <div className="gov-page">
+          <div className="gov-page-loading">
+            <div className="spinner"></div>
             <p>Loading posts...</p>
           </div>
         </div>
@@ -151,17 +152,19 @@ function AdminBlog() {
         />
       )}
       <AdminLayout>
-        <div className="page page-admin">
-          <div className="page-card">
-            <div className="admin-header">
-              <h1 className="page-title">{t.title}</h1>
-              <button className="btn btn-primary" onClick={() => setShowForm(!showForm)}>
-                {showForm ? t.cancel : t.addPost}
-              </button>
+        <div className="gov-page">
+          <header className="gov-page-header gov-page-header--row">
+            <div>
+              <h1 className="gov-page-title">{t.title}</h1>
+              <p className="gov-page-subtitle">Manage announcements and driving safety notices</p>
             </div>
+            <button className="gov-btn gov-btn-primary" onClick={() => setShowForm(!showForm)}>
+              {showForm ? t.cancel : t.addPost}
+            </button>
+          </header>
 
             {showForm && (
-              <form onSubmit={handleSubmit} className="blog-form">
+              <form onSubmit={handleSubmit} className="gov-form gov-blog-form">
                 <Input
                   label={t.title}
                   value={form.title}
@@ -182,23 +185,25 @@ function AdminBlog() {
                     required
                   />
                 </label>
-                <div className="form-actions">
-                  <button type="button" className="btn btn-secondary" onClick={resetForm}>
+                <div className="gov-form-actions">
+                  <button type="button" className="gov-btn gov-btn-secondary" onClick={resetForm}>
                     {t.cancel}
                   </button>
-                  <button type="submit" className="btn btn-primary">
+                  <button type="submit" className="gov-btn gov-btn-primary">
                     {editingPost ? t.update : t.add}
                   </button>
                 </div>
               </form>
             )}
 
-            <div className="posts-list">
+            <div className="gov-list gov-posts-list">
               {posts.length === 0 ? (
-                <p className="empty-state">{t.noPosts}</p>
+                <div className="gov-empty-state">
+                  <p>{t.noPosts}</p>
+                </div>
               ) : (
                 posts.map((post) => (
-                  <div key={post.id} className="post-item">
+                  <div key={post.id} className="gov-list-card gov-post-card">
                     {post.image_url && <img src={post.image_url} alt={post.title} className="post-image" />}
                     <div className="post-content">
                       <h3>{post.title}</h3>
@@ -207,11 +212,11 @@ function AdminBlog() {
                         Created: {new Date(post.created_at).toLocaleDateString()}
                       </p>
                     </div>
-                    <div className="post-actions">
-                      <button className="btn btn-secondary" onClick={() => startEdit(post)}>
+                    <div className="gov-card-actions">
+                      <button className="gov-btn gov-btn-secondary" onClick={() => startEdit(post)}>
                         {t.edit}
                       </button>
-                      <button className="btn btn-danger" onClick={() => handleDelete(post.id)}>
+                      <button className="gov-btn gov-btn-danger" onClick={() => handleDelete(post.id)}>
                         {t.delete}
                       </button>
                     </div>
@@ -219,7 +224,6 @@ function AdminBlog() {
                 ))
               )}
             </div>
-          </div>
         </div>
       </AdminLayout>
     </>

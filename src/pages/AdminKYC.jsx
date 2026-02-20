@@ -27,16 +27,38 @@ function AdminKYC() {
   const loadKYC = async () => {
     try {
       setLoading(true)
-      let query = supabase.from('kyc').select('*, profiles:user_id(first_name, last_name, email)')
+      let query = supabase.from('kyc').select('*')
 
       if (filter !== 'all') {
         query = query.eq('status', filter)
       }
 
-      const { data, error } = await query.order('submitted_at', { ascending: false })
+      const { data: kycData, error } = await query.order('submitted_at', { ascending: false })
 
       if (error) throw error
-      setKycList(data || [])
+
+      if (!kycData || kycData.length === 0) {
+        setKycList([])
+        return
+      }
+
+      const userIds = [...new Set(kycData.map((k) => k.user_id))]
+      const { data: profileData } = await supabase
+        .from('profiles')
+        .select('id, first_name, last_name, email')
+        .in('id', userIds)
+
+      const profileMap = (profileData || []).reduce((acc, p) => {
+        acc[p.id] = p
+        return acc
+      }, {})
+
+      const merged = kycData.map((kyc) => ({
+        ...kyc,
+        profiles: profileMap[kyc.user_id] || null,
+      }))
+
+      setKycList(merged)
     } catch (err) {
       console.error('Error loading KYC:', err)
       setNotification({
@@ -107,8 +129,9 @@ function AdminKYC() {
   if (loading) {
     return (
       <AdminLayout>
-        <div className="page page-admin">
-          <div className="page-card">
+        <div className="gov-page">
+          <div className="gov-page-loading">
+            <div className="spinner"></div>
             <p>Loading KYC applications...</p>
           </div>
         </div>
@@ -127,51 +150,55 @@ function AdminKYC() {
         />
       )}
       <AdminLayout>
-        <div className="page page-admin">
-          <div className="page-card">
-            <h1 className="page-title">{t.title}</h1>
+        <div className="gov-page">
+          <header className="gov-page-header">
+            <h1 className="gov-page-title">{t.title}</h1>
+            <p className="gov-page-subtitle">Review and verify citizen KYC applications</p>
+          </header>
 
-            <div className="admin-filters">
+          <div className="gov-filters">
               <button
-                className={`filter-btn ${filter === 'all' ? 'active' : ''}`}
+                className={`gov-filter-btn ${filter === 'all' ? 'active' : ''}`}
                 onClick={() => setFilter('all')}
               >
                 {t.all}
               </button>
               <button
-                className={`filter-btn ${filter === 'submitted' ? 'active' : ''}`}
+                className={`gov-filter-btn ${filter === 'submitted' ? 'active' : ''}`}
                 onClick={() => setFilter('submitted')}
               >
                 {t.pending}
               </button>
               <button
-                className={`filter-btn ${filter === 'verified' ? 'active' : ''}`}
+                className={`gov-filter-btn ${filter === 'verified' ? 'active' : ''}`}
                 onClick={() => setFilter('verified')}
               >
                 {t.verified}
               </button>
               <button
-                className={`filter-btn ${filter === 'rejected' ? 'active' : ''}`}
+                className={`gov-filter-btn ${filter === 'rejected' ? 'active' : ''}`}
                 onClick={() => setFilter('rejected')}
               >
                 {t.rejected}
               </button>
             </div>
 
-            <div className="kyc-list">
+            <div className="gov-list gov-kyc-list">
               {kycList.length === 0 ? (
-                <p className="empty-state">{t.noApplications}</p>
+                <div className="gov-empty-state">
+                  <p>{t.noApplications}</p>
+                </div>
               ) : (
                 kycList.map((kyc) => (
-                  <div key={kyc.id} className="kyc-item">
-                    <div className="kyc-header">
+                  <div key={kyc.id} className="gov-list-card gov-kyc-card">
+                    <div className="gov-card-header">
                       <div>
                         <h3>{getKYCUser(kyc)}</h3>
-                        <p className="kyc-meta">
+                        <p className="gov-card-meta">
                           Submitted: {new Date(kyc.submitted_at).toLocaleDateString()}
                         </p>
                       </div>
-                      <span className={`badge badge--${kyc.status}`}>
+                      <span className={`gov-badge gov-badge--${kyc.status}`}>
                         {kyc.status === 'verified'
                           ? '✓ Verified'
                           : kyc.status === 'rejected'
@@ -179,9 +206,9 @@ function AdminKYC() {
                           : '⏳ Pending'}
                       </span>
                     </div>
-                    <div className="kyc-actions">
+                    <div className="gov-card-actions">
                       <button
-                        className="btn btn-secondary"
+                        className="gov-btn gov-btn-secondary"
                         onClick={() => setSelectedKYC(kyc)}
                       >
                         {t.viewDetails}
@@ -189,14 +216,14 @@ function AdminKYC() {
                       {kyc.status === 'submitted' && (
                         <>
                           <button
-                            className="btn btn-primary"
+                            className="gov-btn gov-btn-primary"
                             onClick={() => handleReview(kyc.id, 'verified')}
                             disabled={submitting}
                           >
                             {t.approve}
                           </button>
                           <button
-                            className="btn btn-danger"
+                            className="gov-btn gov-btn-danger"
                             onClick={() => {
                               setSelectedKYC(kyc)
                               setRejectionReason(kyc.rejection_reason || '')
@@ -215,15 +242,15 @@ function AdminKYC() {
 
             {/* KYC Detail Modal */}
             {selectedKYC && (
-              <div className="modal-overlay" onClick={() => setSelectedKYC(null)}>
-                <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-                  <div className="modal-header">
+              <div className="gov-modal-overlay" onClick={() => setSelectedKYC(null)}>
+                <div className="gov-modal" onClick={(e) => e.stopPropagation()}>
+                  <div className="gov-modal-header">
                     <h2>{t.kycDetails}</h2>
-                    <button className="modal-close" onClick={() => setSelectedKYC(null)}>
+                    <button className="gov-modal-close" onClick={() => setSelectedKYC(null)}>
                       ×
                     </button>
                   </div>
-                  <div className="modal-body">
+                  <div className="gov-modal-body">
                     <div className="kyc-detail-section">
                       <h3>{t.personalDetails}</h3>
                       {selectedKYC.personal && (
@@ -296,7 +323,7 @@ function AdminKYC() {
                       </div>
                     )}
                     {selectedKYC.status === 'submitted' && (
-                      <div className="modal-actions">
+                      <div className="gov-modal-actions">
                         <div className="rejection-form">
                           <label>
                             {t.rejectionReason}
@@ -307,16 +334,16 @@ function AdminKYC() {
                             />
                           </label>
                         </div>
-                        <div className="action-buttons">
+                        <div className="gov-form-actions">
                           <button
-                            className="btn btn-primary"
+                            className="gov-btn gov-btn-primary"
                             onClick={() => handleReview(selectedKYC.id, 'verified')}
                             disabled={submitting}
                           >
                             {t.approve}
                           </button>
                           <button
-                            className="btn btn-danger"
+                            className="gov-btn gov-btn-danger"
                             onClick={() => handleReview(selectedKYC.id, 'rejected')}
                             disabled={submitting || !rejectionReason.trim()}
                           >
@@ -329,7 +356,6 @@ function AdminKYC() {
                 </div>
               </div>
             )}
-          </div>
         </div>
       </AdminLayout>
     </>

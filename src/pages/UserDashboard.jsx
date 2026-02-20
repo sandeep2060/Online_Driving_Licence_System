@@ -133,6 +133,12 @@ function UserDashboard() {
         <header className="dashboard-hero">
           <div className="hero-content">
             <div className="greeting-section">
+              <div className="user-dashboard-badge">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5"/>
+                </svg>
+                <span>Government of Nepal · Citizen Portal</span>
+              </div>
               <h1 className="greeting-title">
                 Welcome back, <span className="name-highlight">{profile?.first_name || 'there'}</span>
               </h1>

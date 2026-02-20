@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { useLanguage } from '../context/LanguageContext.jsx'
 import { useAuth } from '../context/AuthContext.jsx'
 import { supabase } from '../lib/supabase.js'
-import PageLayout from '../components/PageLayout.jsx'
+import DashboardLayout from '../components/DashboardLayout.jsx'
 import Input from '../components/Input.jsx'
 import Select from '../components/Select.jsx'
 import { translations } from '../translations.js'
@@ -237,13 +237,14 @@ function Profile() {
 
   if (loading) {
     return (
-      <PageLayout>
-        <div className="page page-profile">
-          <div className="page-card">
+      <DashboardLayout>
+        <div className="user-page gov-page">
+          <div className="gov-page-loading">
+            <div className="spinner"></div>
             <p>Loading profile...</p>
           </div>
         </div>
-      </PageLayout>
+      </DashboardLayout>
     )
   }
 
@@ -259,11 +260,13 @@ function Profile() {
           onClose={() => setNotification(null)}
         />
       )}
-      <PageLayout>
-        <div className="page page-profile">
-          <div className="page-card">
-            <h1 className="page-title">{t.title}</h1>
-            <p className="page-subtitle">{t.subtitle}</p>
+      <DashboardLayout>
+        <div className="user-page gov-page">
+          <div className="gov-page-card">
+            <header className="gov-page-header">
+              <h1 className="gov-page-title">{t.title}</h1>
+              <p className="gov-page-subtitle">{t.subtitle}</p>
+            </header>
 
             <div className="kyc-status">
               <span className={`badge badge--${kycStatus}`}>
@@ -526,7 +529,7 @@ function Profile() {
             </form>
           </div>
         </div>
-      </PageLayout>
+      </DashboardLayout>
     </>
   )
 }

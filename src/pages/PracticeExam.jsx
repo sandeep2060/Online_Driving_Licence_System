@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { useLanguage } from '../context/LanguageContext.jsx'
 import { useAuth } from '../context/AuthContext.jsx'
 import { supabase } from '../lib/supabase.js'
-import PageLayout from '../components/PageLayout.jsx'
+import DashboardLayout from '../components/DashboardLayout.jsx'
 import { translations } from '../translations.js'
 import ProtectedRoute from '../components/ProtectedRoute.jsx'
 
@@ -71,52 +71,53 @@ function PracticeExam() {
 
   if (loading) {
     return (
-      <PageLayout>
-        <div className="page page-exam">
-          <div className="page-card">
+      <DashboardLayout>
+        <div className="user-page gov-page gov-exam-page">
+          <div className="gov-page-loading">
+            <div className="spinner"></div>
             <p>Loading questions...</p>
           </div>
         </div>
-      </PageLayout>
+      </DashboardLayout>
     )
   }
 
   if (error) {
     return (
-      <PageLayout>
-        <div className="page page-exam">
-          <div className="page-card">
-            <p className="error-message">{error}</p>
-            <button className="btn btn-primary" onClick={loadQuestions}>
+      <DashboardLayout>
+        <div className="user-page gov-page gov-exam-page">
+          <div className="gov-page-card gov-card--centered">
+            <p className="gov-error-text">{error}</p>
+            <button className="gov-btn gov-btn-primary" onClick={loadQuestions}>
               Retry
             </button>
           </div>
         </div>
-      </PageLayout>
+      </DashboardLayout>
     )
   }
 
   if (questions.length === 0) {
     return (
-      <PageLayout>
-        <div className="page page-exam">
-          <div className="page-card">
+      <DashboardLayout>
+        <div className="user-page gov-page gov-exam-page">
+          <div className="gov-page-card gov-card--centered">
             <p>No practice questions available yet.</p>
-            <button className="btn btn-secondary" onClick={() => navigate('/user/dashboard')}>
+            <button className="gov-btn gov-btn-secondary" onClick={() => navigate('/user/dashboard')}>
               Back to Dashboard
             </button>
           </div>
         </div>
-      </PageLayout>
+      </DashboardLayout>
     )
   }
 
   if (showResults) {
     const { correct, total, percentage } = calculateScore()
     return (
-      <PageLayout>
-        <div className="page page-exam">
-          <div className="page-card">
+      <DashboardLayout>
+        <div className="user-page gov-page gov-exam-page">
+          <div className="gov-page-card">
             <h1 className="page-title">{t.results}</h1>
             <div className="exam-results">
               <div className="result-score">
@@ -150,18 +151,18 @@ function PracticeExam() {
                   )
                 })}
               </div>
-              <div className="exam-actions">
-                <button className="btn btn-primary" onClick={resetExam}>
+              <div className="gov-form-actions">
+                <button className="gov-btn gov-btn-primary" onClick={resetExam}>
                   {t.tryAgain}
                 </button>
-                <button className="btn btn-secondary" onClick={() => navigate('/user/dashboard')}>
+                <button className="gov-btn gov-btn-secondary" onClick={() => navigate('/user/dashboard')}>
                   {t.backToDashboard}
                 </button>
               </div>
             </div>
           </div>
         </div>
-      </PageLayout>
+      </DashboardLayout>
     )
   }
 
@@ -169,9 +170,9 @@ function PracticeExam() {
   const progress = ((currentIndex + 1) / questions.length) * 100
 
   return (
-    <PageLayout>
-      <div className="page page-exam">
-        <div className="page-card">
+    <DashboardLayout>
+      <div className="user-page gov-page gov-exam-page">
+        <div className="gov-page-card">
           <div className="exam-header">
             <h1 className="page-title">{t.title}</h1>
             <div className="exam-progress">
@@ -224,7 +225,7 @@ function PracticeExam() {
 
           <div className="exam-navigation">
             <button
-              className="btn btn-secondary"
+              className="gov-btn gov-btn-secondary"
               onClick={() => setCurrentIndex((prev) => Math.max(0, prev - 1))}
               disabled={currentIndex === 0}
             >
@@ -232,7 +233,7 @@ function PracticeExam() {
             </button>
             {currentIndex === questions.length - 1 ? (
               <button
-                className="btn btn-primary"
+                className="gov-btn gov-btn-primary"
                 onClick={handleSubmit}
                 disabled={Object.keys(answers).length < questions.length}
               >
@@ -240,7 +241,7 @@ function PracticeExam() {
               </button>
             ) : (
               <button
-                className="btn btn-primary"
+                className="gov-btn gov-btn-primary"
                 onClick={() => setCurrentIndex((prev) => Math.min(questions.length - 1, prev + 1))}
               >
                 {t.next}
@@ -248,14 +249,14 @@ function PracticeExam() {
             )}
           </div>
 
-          <div className="exam-actions">
-            <button className="btn btn-secondary" onClick={() => navigate('/user/dashboard')}>
+          <div className="gov-form-actions">
+            <button className="gov-btn gov-btn-secondary" onClick={() => navigate('/user/dashboard')}>
               {t.cancel}
             </button>
           </div>
         </div>
       </div>
-    </PageLayout>
+    </DashboardLayout>
   )
 }
 

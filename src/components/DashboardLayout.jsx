@@ -4,10 +4,50 @@ import { useLanguage } from '../context/LanguageContext.jsx'
 import { useAuth } from '../context/AuthContext.jsx'
 
 const menuItems = [
-  { path: '/user/dashboard', icon: '🏠', label: 'Dashboard', key: 'dashboard' },
-  { path: '/profile', icon: '👤', label: 'Profile & KYC', key: 'profile' },
-  { path: '/practice', icon: '📚', label: 'Practice Exam', key: 'practice' },
-  { path: '/exam', icon: '📝', label: 'Take Exam', key: 'exam' },
+  {
+    path: '/user/dashboard',
+    icon: (
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+        <rect x="3" y="3" width="7" height="9" rx="1"/>
+        <rect x="14" y="3" width="7" height="5" rx="1"/>
+        <rect x="14" y="12" width="7" height="9" rx="1"/>
+        <rect x="3" y="16" width="7" height="5" rx="1"/>
+      </svg>
+    ),
+    label: 'Dashboard',
+    key: 'dashboard',
+  },
+  {
+    path: '/profile',
+    icon: (
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+        <path d="M16 7a4 4 0 1 1-8 0 4 4 0 0 1 8 0z"/>
+        <path d="M12 14a7 7 0 0 0-7 7h14a7 7 0 0 0-7-7z"/>
+      </svg>
+    ),
+    label: 'Profile & KYC',
+    key: 'profile',
+  },
+  {
+    path: '/practice',
+    icon: (
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+        <path d="M12 6.25278V19.2528M12 6.25278C10.8321 5.47686 9.24649 5 7.5 5C5.75351 5 4.16789 5.47686 3 6.25278V19.2528C4.16789 18.4769 5.75351 18 7.5 18C9.24649 18 10.8321 18.4769 12 19.2528M12 6.25278C13.1679 5.47686 14.7535 5 16.5 5C18.2465 5 19.8321 5.47686 21 6.25278V19.2528C19.8321 18.4769 18.2465 18 16.5 18C14.7535 18 13.1679 18.4769 12 19.2528"/>
+      </svg>
+    ),
+    label: 'Practice Exam',
+    key: 'practice',
+  },
+  {
+    path: '/exam',
+    icon: (
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+        <path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2M9 5a2 2 0 0 0 2 2h2a2 2 0 0 0 2-2M9 5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2"/>
+      </svg>
+    ),
+    label: 'Take Exam',
+    key: 'exam',
+  },
 ]
 
 function DashboardLayout({ children }) {
@@ -47,12 +87,15 @@ function DashboardLayout({ children }) {
         <div className="sidebar-header">
           <Link to="/user/dashboard" className="sidebar-logo">
             <div className="logo-icon-wrapper">
-              <span className="logo-icon">🪪</span>
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <rect x="2" y="5" width="20" height="14" rx="2"/>
+              <path d="M2 10h20M6 15h4"/>
+            </svg>
             </div>
             {sidebarOpen && (
               <div className="logo-text-wrapper">
-                <span className="logo-text">DriveLicense</span>
-                <span className="logo-tagline">Nepal</span>
+                <span className="logo-text">Drive Licence</span>
+                <span className="logo-tagline">Government of Nepal</span>
               </div>
             )}
           </Link>

@@ -159,8 +159,9 @@ function AdminQuestions() {
   if (loading) {
     return (
       <AdminLayout>
-        <div className="page page-admin">
-          <div className="page-card">
+        <div className="gov-page">
+          <div className="gov-page-loading">
+            <div className="spinner"></div>
             <p>Loading questions...</p>
           </div>
         </div>
@@ -179,17 +180,19 @@ function AdminQuestions() {
         />
       )}
       <AdminLayout>
-        <div className="page page-admin">
-          <div className="page-card">
-            <div className="admin-header">
-              <h1 className="page-title">{t.title}</h1>
-              <button className="btn btn-primary" onClick={() => setShowForm(!showForm)}>
-                {showForm ? t.cancel : t.addQuestion}
-              </button>
+        <div className="gov-page">
+          <header className="gov-page-header gov-page-header--row">
+            <div>
+              <h1 className="gov-page-title">{t.title}</h1>
+              <p className="gov-page-subtitle">Manage exam questions and traffic rules</p>
             </div>
+            <button className="gov-btn gov-btn-primary" onClick={() => setShowForm(!showForm)}>
+              {showForm ? t.cancel : t.addQuestion}
+            </button>
+          </header>
 
             {showForm && (
-              <form onSubmit={handleSubmit} className="question-form">
+              <form onSubmit={handleSubmit} className="gov-form gov-question-form">
                 <Select
                   label={t.language}
                   value={form.language}
@@ -246,23 +249,25 @@ function AdminQuestions() {
                   value={form.category}
                   onChange={(e) => setForm((prev) => ({ ...prev, category: e.target.value }))}
                 />
-                <div className="form-actions">
-                  <button type="button" className="btn btn-secondary" onClick={resetForm}>
+                <div className="gov-form-actions">
+                  <button type="button" className="gov-btn gov-btn-secondary" onClick={resetForm}>
                     {t.cancel}
                   </button>
-                  <button type="submit" className="btn btn-primary">
+                  <button type="submit" className="gov-btn gov-btn-primary">
                     {editingQuestion ? t.update : t.add}
                   </button>
                 </div>
               </form>
             )}
 
-            <div className="questions-list">
+            <div className="gov-list gov-questions-list">
               {questions.length === 0 ? (
-                <p className="empty-state">{t.noQuestions}</p>
+                <div className="gov-empty-state">
+                  <p>{t.noQuestions}</p>
+                </div>
               ) : (
                 questions.map((q) => (
-                  <div key={q.id} className="question-item">
+                  <div key={q.id} className="gov-list-card gov-question-card">
                     <div className="question-content">
                       <div className="question-header">
                         <span className="question-language">{q.language.toUpperCase()}</span>
@@ -283,11 +288,11 @@ function AdminQuestions() {
                         ))}
                       </div>
                     </div>
-                    <div className="question-actions">
-                      <button className="btn btn-secondary" onClick={() => startEdit(q)}>
+                    <div className="gov-card-actions">
+                      <button className="gov-btn gov-btn-secondary" onClick={() => startEdit(q)}>
                         {t.edit}
                       </button>
-                      <button className="btn btn-danger" onClick={() => handleDelete(q.id)}>
+                      <button className="gov-btn gov-btn-danger" onClick={() => handleDelete(q.id)}>
                         {t.delete}
                       </button>
                     </div>
@@ -295,7 +300,6 @@ function AdminQuestions() {
                 ))
               )}
             </div>
-          </div>
         </div>
       </AdminLayout>
     </>
