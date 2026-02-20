@@ -7,29 +7,31 @@ import { supabase } from './lib/supabase.js'
 const NEPAL_TRAFFIC_IMAGES = [
   {
     id: 1,
-    src: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT-9zMaFsT_g-imPv5jFMQn_9MPxOM3naTyYQ&s',
+    src: 'https://risingnepaldaily.com/storage/media/8543/police.jpg',
     alt: 'Kathmandu street scene with traffic',
   },
   {
     id: 2,
-    src: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRiT4d5ayRKrSREQaItvR5HO7pr9g9FsHo_4Q&s',
+    src: 'https://annapurnaexpress.prixacdn.net/media/albums/bike-accident_20190917032220_20200117173401_upUZcuXI2p.jpg',
     alt: 'Control by traffic police',
   },
   {
     id: 3,
-    src: 'https://images.unsplash.com/photo-1596422846543-75c6fc197f07?w=600&q=80',
-    alt: 'Nepal urban street',
+    src: 'https://assets-api.kathmandupost.com/thumb.php?src=https://assets-cdn.kathmandupost.com/uploads/source/news/2021/news/traffic-1629485617.png&w=900&height=601',
+    alt: 'Bus accident',
   },
   {
     id: 4,
-    src: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=600&q=80',
-    alt: 'Nepal mountain road',
+    src: 'https://republicaimg.nagariknewscdn.com/shared/web/uploads/media/W3J2iwsHh6ZzSsQdtNtuW1P401KPuPr89XMyUiHP.jpg',
+    alt: 'Drink and drive',
   },
   {
     id: 5,
-    src: 'https://images.unsplash.com/photo-1544735716-392fe2489ffa?w=600&q=80',
-    alt: 'Nepal hill road traffic',
-  },
+    src: 'https://assets-api.kathmandupost.com/thumb.php?src=https://assets-cdn.kathmandupost.com/uploads/source/news/2021/news/24-1640919283.jpg&w=900&height=601',
+    alt: 'safety checks to curb drink driving'
+  }
+
+
 ]
 
 export default function App() {
@@ -120,6 +122,7 @@ export default function App() {
           <ul className={`nav-links ${navOpen ? 'open' : ''}`}>
             <li><a href="#services">{t.nav.services}</a></li>
             <li><a href="#blog">{t.nav.blog}</a></li>
+            <li><a href="#emergency">{t.nav.emergency}</a></li>
             <li><a href="#contact">{t.nav.contact}</a></li>
             <li>
               <button
@@ -270,6 +273,44 @@ export default function App() {
               </button>
             </div>
           </div>
+        </section>
+
+        <section id="emergency" className="emergency-contacts">
+          <h2 className="section-title">{t.emergency.title}</h2>
+          <p className="section-subtitle">{t.emergency.subtitle}</p>
+          <div className="emergency-grid">
+            <a href="tel:103" className="emergency-card">
+              <span className="emergency-icon" aria-hidden="true">🚦</span>
+              <span className="emergency-label">{t.emergency.trafficPolice}</span>
+              <span className="emergency-number">{t.emergency.trafficNumber}</span>
+            </a>
+            <a href="tel:100" className="emergency-card">
+              <span className="emergency-icon" aria-hidden="true">🚔</span>
+              <span className="emergency-label">{t.emergency.police}</span>
+              <span className="emergency-number">{t.emergency.policeNumber}</span>
+            </a>
+            <a href="tel:102" className="emergency-card">
+              <span className="emergency-icon" aria-hidden="true">🚑</span>
+              <span className="emergency-label">{t.emergency.ambulance}</span>
+              <span className="emergency-number">{t.emergency.ambulanceNumber}</span>
+            </a>
+            <a href="tel:101" className="emergency-card">
+              <span className="emergency-icon" aria-hidden="true">🚒</span>
+              <span className="emergency-label">{t.emergency.fire}</span>
+              <span className="emergency-number">{t.emergency.fireNumber}</span>
+            </a>
+            <a href="tel:1144" className="emergency-card">
+              <span className="emergency-icon" aria-hidden="true">🛂</span>
+              <span className="emergency-label">{t.emergency.touristPolice}</span>
+              <span className="emergency-number">{t.emergency.touristNumber}</span>
+            </a>
+            <div className="emergency-card emergency-card--radio">
+              <span className="emergency-icon" aria-hidden="true">📻</span>
+              <span className="emergency-label">{t.emergency.trafficRadio}</span>
+              <span className="emergency-detail">{t.emergency.trafficRadioDetail}</span>
+            </div>
+          </div>
+          <p className="emergency-note">{t.emergency.dialNote}</p>
         </section>
 
         <footer id="contact" className="footer">

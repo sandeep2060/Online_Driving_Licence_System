@@ -3,6 +3,7 @@ export const translations = {
     nav: {
       services: 'Services',
       blog: 'Blog',
+      emergency: 'Emergency',
       faq: 'FAQ',
       contact: 'Contact',
       signIn: 'Sign In',
@@ -55,6 +56,23 @@ export const translations = {
     gallery: {
       title: 'Nepal Traffic & Roads',
       subtitle: 'Driving safely on Nepal roads. Know the rules, stay informed.',
+    },
+    emergency: {
+      title: 'Traffic & Emergency Contacts',
+      subtitle: 'Important numbers for road safety and emergencies in Nepal. Save these for quick access.',
+      trafficPolice: 'Traffic Police',
+      trafficNumber: '103',
+      police: 'Police Emergency',
+      policeNumber: '100',
+      ambulance: 'Ambulance',
+      ambulanceNumber: '102',
+      fire: 'Fire Brigade',
+      fireNumber: '101',
+      touristPolice: 'Tourist Police',
+      touristNumber: '1144',
+      trafficRadio: 'Metro Traffic FM (Kathmandu)',
+      trafficRadioDetail: '95.5 MHz – live traffic updates',
+      dialNote: 'Dial from Nepal. From abroad use +977.',
     },
     footer: {
       privacy: 'Privacy Policy',
@@ -231,6 +249,7 @@ export const translations = {
     nav: {
       services: 'सेवाहरू',
       blog: 'ब्लग',
+      emergency: 'आपतकालीन',
       faq: 'सामान्य प्रश्न',
       contact: 'सम्पर्क',
       signIn: 'साइन इन',
@@ -283,6 +302,23 @@ export const translations = {
     gallery: {
       title: 'नेपाल यातायात र सडकहरू',
       subtitle: 'नेपाली सडकहरूमा सुरक्षित ड्राइभिङ। नियमहरू जान्नुहोस्, सूचित रहनुहोस्।',
+    },
+    emergency: {
+      title: 'यातायात र आपतकालीन सम्पर्क',
+      subtitle: 'नेपालमा सडक सुरक्षा र आपतकालीन सेवाका लागि महत्त्वपूर्ण नम्बरहरू। छिटो पहुँचको लागि सेभ गर्नुहोस्।',
+      trafficPolice: 'यातायात प्रहरी',
+      trafficNumber: '१०३',
+      police: 'प्रहरी आपतकालीन',
+      policeNumber: '१००',
+      ambulance: 'एम्बुलेन्स',
+      ambulanceNumber: '१०२',
+      fire: 'अग्नि विभाग',
+      fireNumber: '१०१',
+      touristPolice: 'पर्यटन प्रहरी',
+      touristNumber: '११४४',
+      trafficRadio: 'मेट्रो ट्राफिक FM (काठमाडौं)',
+      trafficRadioDetail: '९५.५ MHz – लाइभ यातायात अपडेट',
+      dialNote: 'नेपालबाट डायल गर्नुहोस्। विदेशबाट +977 प्रयोग गर्नुहोस्।',
     },
     footer: {
       privacy: 'गोपनीयता नीति',
