@@ -92,18 +92,35 @@ function Exam() {
   const loadQuestions = async () => {
     try {
       setLoading(true)
-      const { data, error: fetchError } = await supabase
+      setError(null)
+      const lang = language === 'ne' ? 'ne' : 'en'
+      let { data, error: fetchError } = await supabase
         .from('questions')
         .select('*')
-        .eq('language', language === 'ne' ? 'ne' : 'en')
+        .eq('language', lang)
 
       if (fetchError) throw fetchError
+      // If no questions for current language, try the other (en/ne) then any language
+      if (!data || data.length === 0) {
+        const fallbackLang = lang === 'en' ? 'ne' : 'en'
+        const res = await supabase.from('questions').select('*').eq('language', fallbackLang)
+        if (!res.error && res.data?.length) {
+          data = res.data
+        }
+      }
+      if (!data || data.length === 0) {
+        const res = await supabase.from('questions').select('*')
+        if (!res.error && res.data?.length) {
+          data = res.data
+        }
+      }
       if (!data || data.length === 0) {
         setError('No exam questions available. Please contact administrator.')
         return
       }
       const shuffled = shuffleArray(data)
       setQuestions(shuffled.slice(0, Math.min(TOTAL_QUESTIONS, shuffled.length)))
+      setError(null)
     } catch (err) {
       console.error('Error loading questions:', err)
       setError('Failed to load exam questions. Please try again.')
