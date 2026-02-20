@@ -4,6 +4,26 @@ import { useAuth } from '../context/AuthContext.jsx'
 import { supabase } from '../lib/supabase.js'
 import AdminLayout from '../components/AdminLayout.jsx'
 
+function escapeCsvCell(val) {
+  if (val == null) return ''
+  const s = String(val)
+  if (/[",\n\r]/.test(s)) return `"${s.replace(/"/g, '""')}"`
+  return s
+}
+
+function downloadCsv(rows, filename) {
+  if (!rows.length) return
+  const header = Object.keys(rows[0]).join(',')
+  const body = rows.map((r) => Object.values(r).map(escapeCsvCell).join(',')).join('\n')
+  const blob = new Blob([header + '\n' + body], { type: 'text/csv;charset=utf-8;' })
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = filename
+  a.click()
+  URL.revokeObjectURL(url)
+}
+
 function AdminDashboard() {
   const { user } = useAuth()
   const [stats, setStats] = useState({
@@ -14,6 +34,7 @@ function AdminDashboard() {
     passedExams: 0,
   })
   const [loading, setLoading] = useState(true)
+  const [exportLoading, setExportLoading] = useState(null)
 
   useEffect(() => {
     loadStats()
@@ -45,6 +66,166 @@ function AdminDashboard() {
   }
 
   const passRate = stats.totalExams > 0 ? Math.round((stats.passedExams / stats.totalExams) * 100) : 0
+
+  const handleExportVerifiedKYC = async () => {
+    setExportLoading('kyc')
+    try {
+      const { data: kycData, error: kycErr } = await supabase
+        .from('kyc')
+        .select('*')
+        .eq('status', 'verified')
+        .order('submitted_at', { ascending: false })
+
+      if (kycErr) throw kycErr
+      if (!kycData?.length) {
+        alert('No verified KYC users found.')
+        return
+      }
+
+      const userIds = [...new Set(kycData.map((k) => k.user_id))]
+      const { data: profilesData } = await supabase
+        .from('profiles')
+        .select('id, first_name, middle_name, last_name, email, phone, date_of_birth, gender, blood_group')
+        .in('id', userIds)
+
+      const profileMap = (profilesData || []).reduce((acc, p) => {
+        acc[p.id] = p
+        return acc
+      }, {})
+
+      const rows = kycData.map((k) => {
+        const p = profileMap[k.user_id] || {}
+        const personal = k.personal || {}
+        const address = k.address || {}
+        return {
+          user_id: k.user_id,
+          email: p.email,
+          first_name: p.first_name,
+          middle_name: p.middle_name,
+          last_name: p.last_name,
+          phone: p.phone,
+          date_of_birth: p.date_of_birth,
+          gender: p.gender,
+          blood_group: p.blood_group,
+          citizenship_number: personal.citizenshipNumber || '',
+          province: address.province || '',
+          district: address.district || '',
+          municipality: address.municipality || '',
+          ward: address.ward || '',
+          vehicle_types: (k.vehicle_types || []).join('; '),
+          submitted_at: k.submitted_at,
+          reviewed_at: k.reviewed_at || '',
+        }
+      })
+      downloadCsv(rows, `verified_kyc_users_${new Date().toISOString().slice(0, 10)}.csv`)
+    } catch (err) {
+      console.error(err)
+      alert('Failed to export verified KYC data.')
+    } finally {
+      setExportLoading(null)
+    }
+  }
+
+  const handleExportPassedApplicants = async () => {
+    setExportLoading('passed')
+    try {
+      const { data: examsData, error: examsErr } = await supabase
+        .from('exams')
+        .select('*')
+        .eq('status', 'passed')
+        .order('completed_at', { ascending: false })
+
+      if (examsErr) throw examsErr
+      if (!examsData?.length) {
+        alert('No passed applicants found.')
+        return
+      }
+
+      const userIds = [...new Set(examsData.map((e) => e.user_id))]
+      const { data: profilesData } = await supabase
+        .from('profiles')
+        .select('id, first_name, middle_name, last_name, email, phone, date_of_birth, gender')
+        .in('id', userIds)
+
+      const profileMap = (profilesData || []).reduce((acc, p) => {
+        acc[p.id] = p
+        return acc
+      }, {})
+
+      const rows = examsData.map((e) => {
+        const p = profileMap[e.user_id] || {}
+        return {
+          user_id: e.user_id,
+          email: p.email,
+          first_name: p.first_name,
+          middle_name: p.middle_name,
+          last_name: p.last_name,
+          phone: p.phone,
+          date_of_birth: p.date_of_birth,
+          gender: p.gender,
+          score: e.score,
+          completed_at: e.completed_at || e.attempted_at,
+        }
+      })
+      downloadCsv(rows, `passed_applicants_${new Date().toISOString().slice(0, 10)}.csv`)
+    } catch (err) {
+      console.error(err)
+      alert('Failed to export passed applicants.')
+    } finally {
+      setExportLoading(null)
+    }
+  }
+
+  const handleExportFailedApplicants = async () => {
+    setExportLoading('failed')
+    try {
+      const { data: examsData, error: examsErr } = await supabase
+        .from('exams')
+        .select('*')
+        .eq('status', 'failed')
+        .order('completed_at', { ascending: false })
+
+      if (examsErr) throw examsErr
+      if (!examsData?.length) {
+        alert('No failed applicants found.')
+        return
+      }
+
+      const userIds = [...new Set(examsData.map((e) => e.user_id))]
+      const { data: profilesData } = await supabase
+        .from('profiles')
+        .select('id, first_name, middle_name, last_name, email, phone, date_of_birth, gender')
+        .in('id', userIds)
+
+      const profileMap = (profilesData || []).reduce((acc, p) => {
+        acc[p.id] = p
+        return acc
+      }, {})
+
+      const rows = examsData.map((e) => {
+        const p = profileMap[e.user_id] || {}
+        return {
+          user_id: e.user_id,
+          email: p.email,
+          first_name: p.first_name,
+          middle_name: p.middle_name,
+          last_name: p.last_name,
+          phone: p.phone,
+          date_of_birth: p.date_of_birth,
+          gender: p.gender,
+          score: e.score,
+          completed_at: e.completed_at || e.attempted_at,
+        }
+      })
+      downloadCsv(rows, `failed_applicants_${new Date().toISOString().slice(0, 10)}.csv`)
+    } catch (err) {
+      console.error(err)
+      alert('Failed to export failed applicants.')
+    } finally {
+      setExportLoading(null)
+    }
+  }
+
   const totalKyc = stats.kycPending + stats.kycVerified + stats.kycRejected
   const verifiedRate = totalKyc > 0 ? Math.round((stats.kycVerified / totalKyc) * 100) : 0
 
@@ -193,6 +374,95 @@ function AdminDashboard() {
                 </svg>
               </div>
             </Link>
+          </div>
+        </section>
+
+        {/* CSV Export */}
+        <section className="gov-actions-section">
+          <h2 className="gov-section-title">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+              <polyline points="7 10 12 15 17 10"/>
+              <line x1="12" y1="15" x2="12" y2="3"/>
+            </svg>
+            Export Data (CSV)
+          </h2>
+          <div className="gov-action-cards">
+            <button
+              className="gov-action-card gov-action-export"
+              onClick={handleExportVerifiedKYC}
+              disabled={exportLoading !== null}
+            >
+              <div className="gov-action-icon">
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                  <circle cx="8.5" cy="7" r="4"/>
+                  <polyline points="17 11 19 13 23 9"/>
+                </svg>
+              </div>
+              <div className="gov-action-content">
+                <h3>Verified KYC Users</h3>
+                <p>Download details of all KYC-verified users</p>
+                {exportLoading === 'kyc' && <span className="gov-action-badge gov-badge-pending">Exporting...</span>}
+              </div>
+              <div className="gov-action-arrow">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                  <polyline points="7 10 12 15 17 10"/>
+                  <line x1="12" y1="15" x2="12" y2="3"/>
+                </svg>
+              </div>
+            </button>
+
+            <button
+              className="gov-action-card gov-action-export"
+              onClick={handleExportPassedApplicants}
+              disabled={exportLoading !== null}
+            >
+              <div className="gov-action-icon">
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 0 0 1.946-.806 3.42 3.42 0 0 1 4.438 0 3.42 3.42 0 0 0 1.946.806 3.42 3.42 0 0 1 3.138 3.138 3.42 3.42 0 0 0 .806 1.946 3.42 3.42 0 0 1 0 4.438 3.42 3.42 0 0 0-.806 1.946 3.42 3.42 0 0 1-3.138 3.138 3.42 3.42 0 0 0-1.946.806 3.42 3.42 0 0 1-4.438 0 3.42 3.42 0 0 0-1.946-.806 3.42 3.42 0 0 1-3.138-3.138 3.42 3.42 0 0 0-.806-1.946 3.42 3.42 0 0 1 0-4.438 3.42 3.42 0 0 0 .806-1.946 3.42 3.42 0 0 1 3.138-3.138z"/>
+                </svg>
+              </div>
+              <div className="gov-action-content">
+                <h3>Passed Applicants</h3>
+                <p>Download details of all users who passed the exam</p>
+                {exportLoading === 'passed' && <span className="gov-action-badge gov-badge-pending">Exporting...</span>}
+              </div>
+              <div className="gov-action-arrow">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                  <polyline points="7 10 12 15 17 10"/>
+                  <line x1="12" y1="15" x2="12" y2="3"/>
+                </svg>
+              </div>
+            </button>
+
+            <button
+              className="gov-action-card gov-action-export"
+              onClick={handleExportFailedApplicants}
+              disabled={exportLoading !== null}
+            >
+              <div className="gov-action-icon">
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <circle cx="12" cy="12" r="10"/>
+                  <line x1="15" y1="9" x2="9" y2="15"/>
+                  <line x1="9" y1="9" x2="15" y2="15"/>
+                </svg>
+              </div>
+              <div className="gov-action-content">
+                <h3>Failed Applicants</h3>
+                <p>Download details of all users who failed the exam</p>
+                {exportLoading === 'failed' && <span className="gov-action-badge gov-badge-pending">Exporting...</span>}
+              </div>
+              <div className="gov-action-arrow">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                  <polyline points="7 10 12 15 17 10"/>
+                  <line x1="12" y1="15" x2="12" y2="3"/>
+                </svg>
+              </div>
+            </button>
           </div>
         </section>
 

@@ -511,6 +511,16 @@
   text-decoration: none;
   color: inherit;
   transition: all 0.3s;
+  cursor: pointer;
+  width: 100%;
+  text-align: left;
+  font-family: inherit;
+}
+
+button.gov-action-card:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
 }
 
 .gov-action-card:hover {
@@ -543,6 +553,11 @@
 .gov-action-blog .gov-action-icon {
   background: rgba(196, 30, 58, 0.15);
   color: var(--gov-crimson);
+}
+
+.gov-action-export .gov-action-icon {
+  background: rgba(20, 184, 166, 0.15);
+  color: var(--primary);
 }
 
 .gov-action-content {

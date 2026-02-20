@@ -74,7 +74,7 @@ function UserDashboard() {
   let canGiveExam = false
 
   if (lastExam?.status === 'failed') {
-    const lastAttempt = new Date(lastExam.attempted_at)
+    const lastAttempt = new Date(lastExam.completed_at || lastExam.attempted_at)
     const now = new Date()
     const diff = daysBetween(lastAttempt, now)
     if (diff < DAYS_90) {
@@ -86,13 +86,9 @@ function UserDashboard() {
     }
   }
 
-  if (lastExam?.status === 'passed' && licence?.expires_at) {
-    const expires = new Date(licence.expires_at)
-    const now = new Date()
-    if (expires > now) {
-      examLocked = true
-      examMessage = 'You have already passed the exam. Exam is disabled until your licence expires.'
-    }
+  if (lastExam?.status === 'passed') {
+    examLocked = true
+    examMessage = 'You have already passed the exam. You cannot retake the exam.'
   }
 
   const kycBlocking = kycStatus !== 'verified'

@@ -8,7 +8,17 @@ import { translations } from '../translations.js'
 import ProtectedRoute from '../components/ProtectedRoute.jsx'
 
 const EXAM_DURATION_MINUTES = 30
-const TOTAL_QUESTIONS = 20
+const TOTAL_QUESTIONS = 25
+const TAB_SWITCH_WARNINGS_MAX = 2
+
+function shuffleArray(arr) {
+  const copy = [...arr]
+  for (let i = copy.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [copy[i], copy[j]] = [copy[j], copy[i]]
+  }
+  return copy
+}
 
 function Exam() {
   const { language } = useLanguage()
@@ -24,7 +34,10 @@ function Exam() {
   const [examSubmitted, setExamSubmitted] = useState(false)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
+  const [tabSwitchWarnings, setTabSwitchWarnings] = useState(0)
+  const [showTabWarning, setShowTabWarning] = useState(false)
   const timerRef = useRef(null)
+  const submitExamRef = useRef(null)
 
   useEffect(() => {
     loadQuestions()
@@ -34,11 +47,37 @@ function Exam() {
   }, [language])
 
   useEffect(() => {
+    if (!examStarted || examSubmitted) return
+
+    const handleVisibilityChange = () => {
+      if (document.hidden) {
+        setTabSwitchWarnings((prev) => {
+          const next = prev + 1
+          if (next > TAB_SWITCH_WARNINGS_MAX) {
+            submitExamRef.current?.()
+            return next
+          }
+          setShowTabWarning(true)
+          return next
+        })
+      }
+    }
+
+    document.addEventListener('visibilitychange', handleVisibilityChange)
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange)
+  }, [examStarted, examSubmitted])
+
+  // Keep submit ref updated for visibility handler
+  useEffect(() => {
+    submitExamRef.current = submitExam
+  })
+
+  useEffect(() => {
     if (examStarted && !examSubmitted && timeRemaining > 0) {
       timerRef.current = setInterval(() => {
         setTimeRemaining((prev) => {
           if (prev <= 1) {
-            handleAutoSubmit()
+            submitExamRef.current?.()
             return 0
           }
           return prev - 1
@@ -57,14 +96,14 @@ function Exam() {
         .from('questions')
         .select('*')
         .eq('language', language === 'ne' ? 'ne' : 'en')
-        .limit(TOTAL_QUESTIONS)
 
       if (fetchError) throw fetchError
       if (!data || data.length === 0) {
         setError('No exam questions available. Please contact administrator.')
         return
       }
-      setQuestions(data)
+      const shuffled = shuffleArray(data)
+      setQuestions(shuffled.slice(0, Math.min(TOTAL_QUESTIONS, shuffled.length)))
     } catch (err) {
       console.error('Error loading questions:', err)
       setError('Failed to load exam questions. Please try again.')
@@ -96,6 +135,7 @@ function Exam() {
   const submitExam = async () => {
     if (examSubmitted) return
     setExamSubmitted(true)
+    submitExamRef.current = null
     if (timerRef.current) clearInterval(timerRef.current)
 
     let correct = 0
@@ -181,6 +221,8 @@ function Exam() {
                 <li>{t.rule3}</li>
                 <li>{t.rule4}</li>
                 <li>{t.rule5}</li>
+                <li>{t.rule6}</li>
+                <li>{t.rule7}</li>
               </ul>
             </div>
             <div className="gov-form-actions gov-form-actions--col">
@@ -271,6 +313,18 @@ function Exam() {
               })}
             </div>
           </div>
+
+          {showTabWarning && (
+            <div className="exam-tab-warning-overlay">
+              <div className="exam-tab-warning-modal">
+                <h3>{t.tabWarningTitle}</h3>
+                <p>{t.tabWarningMessage.replace('{{count}}', tabSwitchWarnings)}</p>
+                <button className="gov-btn gov-btn-primary" onClick={() => setShowTabWarning(false)}>
+                  {t.tabWarningAcknowledge}
+                </button>
+              </div>
+            </div>
+          )}
 
           <div className="exam-navigation">
             <button

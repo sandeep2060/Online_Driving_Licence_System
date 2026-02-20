@@ -1328,6 +1328,34 @@ body {
   font-weight: bold;
 }
 
+.exam-tab-warning-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+}
+
+.exam-tab-warning-modal {
+  background: var(--bg-elevated);
+  border-radius: var(--radius);
+  padding: 2rem;
+  max-width: 420px;
+  text-align: center;
+}
+
+.exam-tab-warning-modal h3 {
+  margin: 0 0 1rem;
+  color: #f59e0b;
+}
+
+.exam-tab-warning-modal p {
+  margin: 0 0 1.5rem;
+  color: var(--text-secondary);
+}
+
 /* Profile/KYC Page */
 .kyc-status {
   margin-bottom: 2rem;
