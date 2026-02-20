@@ -2,6 +2,7 @@ export const translations = {
   en: {
     nav: {
       services: 'Services',
+      blog: 'Blog',
       faq: 'FAQ',
       contact: 'Contact',
       signIn: 'Sign In',
@@ -44,6 +45,12 @@ export const translations = {
       subtitle: 'Enter your application or reference number to check the status',
       placeholder: 'Enter reference number',
       button: 'Track',
+    },
+    blog: {
+      title: 'Latest Updates',
+      subtitle: 'News, tips and updates for your driving licence process.',
+      readMore: 'Read more',
+      noPosts: 'No blog posts yet. Check back soon.',
     },
     gallery: {
       title: 'Nepal Traffic & Roads',
@@ -223,6 +230,7 @@ export const translations = {
   ne: {
     nav: {
       services: 'सेवाहरू',
+      blog: 'ब्लग',
       faq: 'सामान्य प्रश्न',
       contact: 'सम्पर्क',
       signIn: 'साइन इन',
@@ -265,6 +273,12 @@ export const translations = {
       subtitle: 'स्थिति जाँच गर्न आवेदन वा सन्दर्भ नम्बर प्रविष्ट गर्नुहोस्',
       placeholder: 'सन्दर्भ नम्बर प्रविष्ट गर्नुहोस्',
       button: 'ट्र्याक गर्नुहोस्',
+    },
+    blog: {
+      title: 'नयाँ अपडेटहरू',
+      subtitle: 'तपाईंको ड्राइभिङ लाइसेन्स प्रक्रियाको लागि समाचार, सुझाव र अपडेटहरू।',
+      readMore: 'थप पढ्नुहोस्',
+      noPosts: 'अहिले ब्लग पोस्ट छैन। चाँडै पुन: जाँच गर्नुहोस्।',
     },
     gallery: {
       title: 'नेपाल यातायात र सडकहरू',

@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom'
 import { useEffect, useMemo, useState } from 'react'
 import { useLanguage } from './context/LanguageContext.jsx'
 import { translations } from './translations.js'
+import { supabase } from './lib/supabase.js'
 
 const NEPAL_TRAFFIC_IMAGES = [
   {
@@ -31,7 +32,7 @@ const NEPAL_TRAFFIC_IMAGES = [
   },
 ]
 
-function App() {
+export default function App() {
   const { language, toggleLanguage } = useLanguage()
   const t = translations[language]
   const [navOpen, setNavOpen] = useState(false)
@@ -39,6 +40,7 @@ function App() {
 
   const images = useMemo(() => NEPAL_TRAFFIC_IMAGES, [])
   const slideCount = images.length
+  const [blogPosts, setBlogPosts] = useState([])
 
   useEffect(() => {
     const onResize = () => {
@@ -55,6 +57,18 @@ function App() {
     }, 3500)
     return () => window.clearInterval(id)
   }, [slideCount])
+
+  useEffect(() => {
+    async function fetchBlogPosts() {
+      const { data } = await supabase
+        .from('blog_posts')
+        .select('id, title, image_url, body, created_at')
+        .order('created_at', { ascending: false })
+        .limit(6)
+      setBlogPosts(data || [])
+    }
+    fetchBlogPosts()
+  }, [])
 
   const services = [
     {
@@ -81,14 +95,6 @@ function App() {
       color: 'var(--accent-coral)',
       cta: t.services.replace.cta,
     },
-    {
-      id: 4,
-      title: t.services.status.title,
-      description: t.services.status.description,
-      icon: '🔍',
-      color: 'var(--accent-slate)',
-      cta: t.services.status.cta,
-    },
   ]
 
   return (
@@ -113,7 +119,7 @@ function App() {
 
           <ul className={`nav-links ${navOpen ? 'open' : ''}`}>
             <li><a href="#services">{t.nav.services}</a></li>
-            
+            <li><a href="#blog">{t.nav.blog}</a></li>
             <li><a href="#contact">{t.nav.contact}</a></li>
             <li>
               <button
@@ -123,7 +129,7 @@ function App() {
                 title={t.langSwitch}
                 aria-label={t.langSwitch}
               >
-                {language === 'en' ? 'नेपाली' : 'English'}
+                {language === 'en' ? 'ने' : 'En'}
                 </button>
             </li>
             <li><Link to="/login" className="btn-login">{t.nav.signIn}</Link></li>
@@ -136,18 +142,16 @@ function App() {
       <main>
         <section className="hero">
           <div className="hero-content">
-            <span className="hero-badge">{t.hero.badge}</span>
-            <h1 className="hero-title">
-              {t.hero.title} <span className="highlight">{t.hero.titleHighlight}</span>
-              <br />
-              {t.hero.titleEnd}
-            </h1>
-            <p className="hero-subtitle">
-              {t.hero.subtitle}
-            </p>
-            <div className="hero-actions">
-              <Link to="/signup" className="btn btn-primary">{t.hero.getStarted}</Link>
-              <a href="#status" className="btn btn-secondary">{t.hero.checkStatus}</a>
+            <div className="hero-copy">
+              <span className="hero-badge">{t.hero.badge}</span>
+              <h1 className="hero-title">
+                <span className="hero-title-line">{t.hero.title} <span className="highlight">{t.hero.titleHighlight}</span></span>
+                <span className="hero-title-line hero-title-end">{t.hero.titleEnd}</span>
+              </h1>
+              <p className="hero-subtitle">{t.hero.subtitle}</p>
+              <div className="hero-actions">
+                <Link to="/signup" className="btn btn-primary">{t.hero.getStarted}</Link>
+              </div>
             </div>
           </div>
           <div className="hero-visual">
@@ -183,17 +187,50 @@ function App() {
           </div>
         </section>
 
+        <section id="blog" className="blog-section">
+          <h2 className="section-title">{t.blog.title}</h2>
+          <p className="section-subtitle">{t.blog.subtitle}</p>
+          <div className="blog-grid">
+            {blogPosts.length === 0 ? (
+              <p className="blog-empty">{t.blog.noPosts}</p>
+            ) : (
+              blogPosts.map((post) => {
+                const plain = post.body ? String(post.body).replace(/<[^>]+>/g, '').trim() : ''
+                const excerpt = plain.slice(0, 120) + (plain.length > 120 ? '…' : '')
+                const date = post.created_at ? new Date(post.created_at).toLocaleDateString(language === 'ne' ? 'ne-NP' : 'en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) : ''
+                return (
+                  <article key={post.id} className="blog-card">
+                    <div className="blog-card-image">
+                      {post.image_url ? (
+                        <img src={post.image_url} alt={post.title} loading="lazy" />
+                      ) : (
+                        <div className="blog-card-placeholder" aria-hidden="true" />
+                      )}
+                      <span className="blog-card-date">{date}</span>
+                    </div>
+                    <div className="blog-card-body">
+                      <h3 className="blog-card-title">{post.title}</h3>
+                      {excerpt && <p className="blog-card-excerpt">{excerpt}</p>}
+                      <span className="blog-card-link">{t.blog.readMore} →</span>
+                    </div>
+                  </article>
+                )
+              })
+            )}
+          </div>
+        </section>
+
         <section id="gallery" className="gallery">
           <h2 className="section-title">{t.gallery.title}</h2>
           <p className="section-subtitle">{t.gallery.subtitle}</p>
           <div className="slider">
-            <div className="slider-window">
+            <div className="slider-window slider-window--two">
               <div
                 className="slider-track"
-                style={{ transform: `translateX(-${slideIndex * 100}%)` }}
+                style={{ transform: `translateX(calc(-${slideIndex} * (50% + 2.5px)))` }}
               >
                 {images.map((img) => (
-                  <div key={img.id} className="slider-slide">
+                  <div key={img.id} className="slider-slide slider-slide--half">
                     <img src={img.src} alt={img.alt} loading="lazy" />
                   </div>
                 ))}
@@ -204,8 +241,8 @@ function App() {
               <button
                 type="button"
                 className="slider-btn"
-                aria-label="Previous image"
-                onClick={() => setSlideIndex((i) => (i - 1 + slideCount) % slideCount)}
+                aria-label="Previous"
+                onClick={() => setSlideIndex((i) => (i <= 0 ? slideCount - 1 : i - 1))}
               >
                 ‹
               </button>
@@ -216,7 +253,7 @@ function App() {
                     key={img.id}
                     type="button"
                     className={`slider-dot ${i === slideIndex ? 'active' : ''}`}
-                    aria-label={`Go to image ${i + 1}`}
+                    aria-label={`Go to slide ${i + 1}`}
                     aria-pressed={i === slideIndex}
                     onClick={() => setSlideIndex(i)}
                   />
@@ -226,27 +263,12 @@ function App() {
               <button
                 type="button"
                 className="slider-btn"
-                aria-label="Next image"
+                aria-label="Next"
                 onClick={() => setSlideIndex((i) => (i + 1) % slideCount)}
               >
                 ›
               </button>
             </div>
-          </div>
-        </section>
-
-        <section id="status" className="quick-status">
-          <div className="status-box">
-            <h3>{t.track.title}</h3>
-            <p>{t.track.subtitle}</p>
-            <form className="status-form" onSubmit={(e) => e.preventDefault()}>
-              <input
-                type="text"
-                placeholder={t.track.placeholder}
-                className="status-input"
-              />
-              <button type="submit" className="btn btn-primary">{t.track.button}</button>
-            </form>
           </div>
         </section>
 
@@ -269,4 +291,3 @@ function App() {
   )
 }
 
-export default App
