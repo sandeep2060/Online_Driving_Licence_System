@@ -1,0 +1,628 @@
+/**
+ * Responsive UI/UX - All Devices
+ * Professional, user-friendly, touch-optimized
+ * No logic changes - styling only
+ */
+
+/* ===== ROOT: Safe areas & touch targets ===== */
+:root {
+  --touch-min: 44px;
+  --safe-top: env(safe-area-inset-top, 0);
+  --safe-bottom: env(safe-area-inset-bottom, 0);
+  --safe-left: env(safe-area-inset-left, 0);
+  --safe-right: env(safe-area-inset-right, 0);
+}
+
+/* ===== LANDING (App.jsx) ===== */
+@media (max-width: 900px) {
+  .hero {
+    gap: 2rem;
+    padding: 6rem 1.5rem 3rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .nav {
+    padding: 0.875rem 1rem;
+  }
+
+  .hero {
+    padding: 5rem 1rem 2rem;
+    gap: 1.5rem;
+  }
+
+  .hero-subtitle {
+    max-width: 100%;
+  }
+
+  .hero-actions {
+    flex-direction: column;
+    width: 100%;
+    max-width: 320px;
+    margin: 0 auto;
+  }
+
+  .hero-actions .btn {
+    width: 100%;
+    min-height: var(--touch-min);
+    padding: 1rem 1.5rem;
+  }
+
+  .card-mockup {
+    max-width: 280px;
+    width: 100%;
+  }
+
+  .services {
+    padding: 4rem 1rem;
+  }
+
+  .services-grid {
+    gap: 1rem;
+  }
+
+  .gallery {
+    padding: 4rem 1rem;
+  }
+
+  .slider-controls {
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    padding: 0.75rem 1rem;
+  }
+
+  .slider-btn {
+    width: 48px;
+    height: 44px;
+    min-width: 48px;
+    min-height: 44px;
+  }
+
+  .slider-dot {
+    width: 12px;
+    height: 12px;
+  }
+
+  .quick-status {
+    padding: 3rem 1rem;
+  }
+
+  .status-box {
+    padding: 1.5rem;
+  }
+
+  .status-form {
+    flex-direction: column;
+  }
+
+  .status-input {
+    min-width: 0;
+    width: 100%;
+  }
+
+  .status-form .btn {
+    width: 100%;
+    min-height: var(--touch-min);
+  }
+
+  .footer {
+    padding: 2rem 1rem;
+  }
+
+  .footer-links {
+    flex-wrap: wrap;
+    gap: 1rem;
+    justify-content: center;
+  }
+}
+
+@media (max-width: 480px) {
+  .hero-title {
+    font-size: clamp(1.75rem, 6vw, 2.25rem);
+  }
+
+  .section-title {
+    font-size: 1.5rem;
+  }
+
+  .card-mockup {
+    max-width: 260px;
+  }
+
+  .service-card {
+    padding: 1.25rem;
+  }
+}
+
+/* ===== PAGE LAYOUT (Auth: SignUp, Login, AdminLogin) ===== */
+@media (max-width: 768px) {
+  .page-nav {
+    padding: 0.75rem 1rem;
+  }
+
+  .page-nav-links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  .page-nav-link,
+  .btn-login,
+  .page-nav-links .btn {
+    padding: 0.5rem 0.875rem;
+    font-size: 0.9rem;
+  }
+
+  .lang-switcher {
+    padding: 0.5rem 0.75rem;
+    font-size: 0.85rem;
+  }
+}
+
+@media (max-width: 600px) {
+  .page-main {
+    padding: 1rem;
+  }
+
+  .page-card {
+    padding: 1.5rem;
+  }
+
+  .form-row-2,
+  .form-row-3 {
+    grid-template-columns: 1fr;
+  }
+
+  .date-input-row {
+    flex-direction: column;
+  }
+
+  .date-mode-btn {
+    width: 100%;
+  }
+
+  .btn-full {
+    min-height: var(--touch-min);
+  }
+}
+
+@media (max-width: 480px) {
+  .page-card {
+    padding: 1.25rem;
+  }
+
+  .page-title {
+    font-size: 1.5rem;
+  }
+
+  .form-input,
+  .form-select {
+    min-height: 48px;
+    padding: 0.875rem 1rem;
+  }
+
+  .role-tab {
+    min-height: var(--touch-min);
+  }
+}
+
+/* ===== KYC SECTIONS (Profile) ===== */
+@media (max-width: 768px) {
+  .kyc-sections {
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  .section-tab {
+    flex: 1;
+    min-width: 120px;
+    padding: 0.75rem 1rem;
+    font-size: 0.875rem;
+  }
+
+  .vehicle-types-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .form-actions {
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .form-actions .btn {
+    width: 100%;
+    min-height: var(--touch-min);
+  }
+}
+
+@media (max-width: 480px) {
+  .kyc-sections {
+    flex-direction: column;
+  }
+
+  .section-tab {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .vehicle-types-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .vehicle-type-card {
+    flex-direction: row;
+    justify-content: flex-start;
+  }
+
+  .vehicle-icon {
+    margin-bottom: 0;
+    margin-right: 0.75rem;
+  }
+}
+
+/* ===== USER DASHBOARD ===== */
+@media (max-width: 768px) {
+  .hero-content {
+    flex-direction: column;
+    align-items: stretch;
+    text-align: left;
+  }
+
+  .action-link {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .stat-card-wrapper {
+    grid-template-columns: 1fr;
+  }
+
+  .progress-ring-wrapper {
+    width: 120px;
+    height: 120px;
+  }
+
+  .licence-photo-frame {
+    width: 100px;
+    height: 125px;
+  }
+
+  .licence-photo {
+    width: 90px;
+    height: 115px;
+    font-size: 2.5rem;
+  }
+
+  .licence-card-content {
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+
+  .kyc-info-value {
+    max-width: 55%;
+  }
+
+  .info-grid .info-box {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .traffic-rule-item {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .card-message {
+    flex-direction: column;
+  }
+}
+
+@media (max-width: 480px) {
+  .greeting-title {
+    font-size: 1.5rem;
+  }
+
+  .progress-ring-wrapper {
+    width: 100px;
+    height: 100px;
+  }
+
+  .progress-percentage {
+    font-size: 1.5rem;
+  }
+
+  .licence-photo-frame {
+    width: 90px;
+    height: 110px;
+  }
+
+  .licence-photo {
+    width: 80px;
+    height: 100px;
+    font-size: 2rem;
+  }
+
+  .kyc-progress-container {
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+}
+
+/* ===== EXAM & PRACTICE EXAM ===== */
+@media (max-width: 768px) {
+  .exam-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 1rem;
+  }
+
+  .exam-timer {
+    font-size: 1.35rem;
+  }
+
+  .option-label {
+    min-height: var(--touch-min);
+    padding: 1rem 1.25rem;
+  }
+
+  .option-label input[type="radio"] {
+    min-width: 22px;
+    min-height: 22px;
+  }
+
+  .question-numbers {
+    gap: 0.35rem;
+  }
+
+  .question-number {
+    width: 36px;
+    height: 36px;
+    min-width: 36px;
+    min-height: 36px;
+    font-size: 0.875rem;
+  }
+
+  .exam-navigation {
+    flex-wrap: wrap;
+    gap: 0.75rem;
+  }
+
+  .exam-navigation .btn {
+    min-height: var(--touch-min);
+  }
+
+  .result-item {
+    padding: 1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .question-number {
+    width: 32px;
+    height: 32px;
+    min-width: 32px;
+    min-height: 32px;
+    font-size: 0.8rem;
+  }
+
+  .option-image {
+    max-width: 100%;
+  }
+
+  .question-text {
+    font-size: 1rem;
+  }
+}
+
+/* ===== DASHBOARD LAYOUT (Sidebar) ===== */
+@media (max-width: 1024px) {
+  .dashboard-content {
+    padding: 1.5rem 1rem;
+    padding-top: 5.5rem;
+    min-height: 100vh;
+  }
+
+  .mobile-menu-toggle {
+    top: 1rem;
+    left: 1rem;
+    width: 48px;
+    height: 48px;
+    z-index: 98;
+  }
+}
+
+@media (max-width: 480px) {
+  .dashboard-content {
+    padding: 1rem 0.75rem;
+    padding-top: 5rem;
+  }
+
+  .sidebar-header {
+    padding: 1rem;
+  }
+}
+
+/* ===== ADMIN LAYOUT ===== */
+@media (max-width: 1024px) {
+  .gov-admin-content {
+    padding: 1.5rem 1rem;
+    padding-top: 5.5rem;
+  }
+
+  .gov-mobile-toggle {
+    top: 1rem;
+    left: 1rem;
+    width: 48px;
+    height: 48px;
+    z-index: 98;
+  }
+}
+
+@media (max-width: 480px) {
+  .gov-admin-content {
+    padding: 1rem 0.75rem;
+    padding-top: 5rem;
+  }
+}
+
+/* ===== MODALS ===== */
+@media (max-width: 600px) {
+  .gov-modal-overlay,
+  .modal-overlay {
+    padding: 0.75rem;
+    align-items: flex-end;
+  }
+
+  .gov-modal,
+  .modal-content {
+    max-height: 85vh;
+    border-radius: 20px 20px 0 0;
+  }
+
+  .gov-modal-header {
+    padding: 1rem 1.25rem;
+  }
+
+  .gov-modal-body {
+    padding: 1rem 1.25rem;
+  }
+
+  .gov-modal-body .detail-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .gov-modal-body .document-preview {
+    max-width: 100%;
+  }
+}
+
+/* ===== NOTIFICATION ===== */
+@media (max-width: 400px) {
+  .notification {
+    width: 95%;
+    padding: 1.25rem;
+  }
+
+  .notification-close {
+    min-width: 44px;
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+}
+
+/* ===== GOV PAGES (Admin KYC, Questions, Blog) ===== */
+@media (max-width: 768px) {
+  .gov-action-card {
+    flex-direction: column;
+  }
+
+  .gov-action-arrow {
+    align-self: flex-end;
+  }
+
+  .gov-post-card .post-image {
+    max-height: 160px;
+  }
+
+  .gov-form textarea {
+    min-height: 100px;
+  }
+
+  .category-options-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .gov-question-form .form-group {
+    margin-bottom: 1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .category-options-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .category-option-label {
+    min-height: 44px;
+  }
+}
+
+@media (max-width: 480px) {
+  .gov-page-title {
+    font-size: 1.375rem;
+  }
+
+  .gov-summary-bar {
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+}
+
+/* ===== BUTTONS - Touch friendly ===== */
+@media (pointer: coarse) {
+  .btn,
+  .gov-btn,
+  .filter-btn,
+  .gov-filter-btn,
+  button[type="submit"],
+  button[type="button"]:not(.modal-close):not(.notification-close) {
+    min-height: var(--touch-min);
+  }
+
+  .slider-dot {
+    padding: 0.5rem;
+    margin: -0.5rem;
+  }
+}
+
+/* ===== FORM COMPONENTS (Input, Select, Checkbox) ===== */
+@media (max-width: 480px) {
+  .form-group {
+    margin-bottom: 1rem;
+  }
+
+  .form-label {
+    font-size: 0.875rem;
+  }
+
+  .form-input,
+  .form-select,
+  input[type="text"],
+  input[type="email"],
+  input[type="password"],
+  input[type="date"] {
+    font-size: 16px; /* prevents zoom on iOS */
+  }
+
+  .checkbox-label {
+    align-items: flex-start;
+  }
+
+  .form-checkbox {
+    min-width: 20px;
+    min-height: 20px;
+  }
+}
+
+/* ===== ADMIN LOGIN ===== */
+@media (max-width: 480px) {
+  .page-admin-login .admin-login-card,
+  .page-admin-login .page-card {
+    max-width: 100%;
+  }
+}
+
+/* ===== LANDSCAPE MOBILE ===== */
+@media (max-height: 500px) and (orientation: landscape) {
+  .hero {
+    min-height: auto;
+    padding: 5rem 2rem 3rem;
+  }
+
+  .gov-modal-overlay {
+    align-items: flex-start;
+    overflow-y: auto;
+  }
+}

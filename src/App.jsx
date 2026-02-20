@@ -2,7 +2,6 @@ import { Link } from 'react-router-dom'
 import { useEffect, useMemo, useState } from 'react'
 import { useLanguage } from './context/LanguageContext.jsx'
 import { translations } from './translations.js'
-import './App.css'
 
 const NEPAL_TRAFFIC_IMAGES = [
   {

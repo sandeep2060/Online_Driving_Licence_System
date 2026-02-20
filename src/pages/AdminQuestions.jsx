@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useLanguage } from '../context/LanguageContext.jsx'
 import { supabase } from '../lib/supabase.js'
 import AdminLayout from '../components/AdminLayout.jsx'
@@ -7,6 +7,19 @@ import Select from '../components/Select.jsx'
 import { translations } from '../translations.js'
 import ProtectedRoute from '../components/ProtectedRoute.jsx'
 import Notification from '../components/Notification.jsx'
+
+const CATEGORY_OPTIONS = [
+  'Traffic Signs',
+  'Traffic Rules',
+  'Safety',
+  'Vehicle',
+  'Road Markings',
+  'General Knowledge',
+  'Lane Discipline',
+  'Overtaking',
+  'Parking',
+  'Licence',
+]
 
 function AdminQuestions() {
   const { language } = useLanguage()
@@ -17,6 +30,7 @@ function AdminQuestions() {
   const [showForm, setShowForm] = useState(false)
   const [editingQuestion, setEditingQuestion] = useState(null)
   const [notification, setNotification] = useState(null)
+  const formRef = useRef(null)
 
   const [form, setForm] = useState({
     language: 'en',
@@ -24,7 +38,7 @@ function AdminQuestions() {
     question_image_url: '',
     options: ['', '', '', ''],
     correct_index: 0,
-    category: '',
+    categories: [],
   })
 
   useEffect(() => {
@@ -76,7 +90,7 @@ function AdminQuestions() {
         question_image_url: form.question_image_url || null,
         options: optionsData,
         correct_index: form.correct_index,
-        category: form.category || null,
+        category: form.categories.length > 0 ? form.categories.join(', ') : null,
       }
 
       if (editingQuestion) {
@@ -137,7 +151,7 @@ function AdminQuestions() {
       question_image_url: '',
       options: ['', '', '', ''],
       correct_index: 0,
-      category: '',
+      categories: [],
     })
     setEditingQuestion(null)
     setShowForm(false)
@@ -145,15 +159,27 @@ function AdminQuestions() {
 
   const startEdit = (question) => {
     setEditingQuestion(question)
+    const cats = question.category
+      ? question.category.split(',').map((s) => s.trim()).filter(Boolean)
+      : []
     setForm({
       language: question.language,
       question_text: question.question_text || '',
       question_image_url: question.question_image_url || '',
       options: question.options.map((opt) => (typeof opt === 'string' ? opt : opt.text)),
       correct_index: question.correct_index,
-      category: question.category || '',
+      categories: cats,
     })
     setShowForm(true)
+    setTimeout(() => formRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 100)
+  }
+
+  const toggleCategory = (cat) => {
+    setForm((prev) =>
+      prev.categories.includes(cat)
+        ? { ...prev, categories: prev.categories.filter((c) => c !== cat) }
+        : { ...prev, categories: [...prev.categories, cat] }
+    )
   }
 
   if (loading) {
@@ -186,13 +212,24 @@ function AdminQuestions() {
               <h1 className="gov-page-title">{t.title}</h1>
               <p className="gov-page-subtitle">Manage exam questions and traffic rules</p>
             </div>
-            <button className="gov-btn gov-btn-primary" onClick={() => setShowForm(!showForm)}>
+            <button
+              type="button"
+              className="gov-btn gov-btn-primary"
+              onClick={() => {
+                if (showForm) {
+                  resetForm()
+                } else {
+                  setShowForm(true)
+                  setTimeout(() => formRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 150)
+                }
+              }}
+            >
               {showForm ? t.cancel : t.addQuestion}
             </button>
           </header>
 
             {showForm && (
-              <form onSubmit={handleSubmit} className="gov-form gov-question-form">
+              <form ref={formRef} onSubmit={handleSubmit} className="gov-form gov-question-form">
                 <Select
                   label={t.language}
                   value={form.language}
@@ -244,11 +281,23 @@ function AdminQuestions() {
                   ]}
                   required
                 />
-                <Input
-                  label={t.category}
-                  value={form.category}
-                  onChange={(e) => setForm((prev) => ({ ...prev, category: e.target.value }))}
-                />
+                <div className="form-group">
+                  <label className="form-label">{t.category}</label>
+                  <p className="category-hint">Select one or more categories</p>
+                  <div className="category-options-grid">
+                    {CATEGORY_OPTIONS.map((cat) => (
+                      <label key={cat} className="category-option-label">
+                        <input
+                          type="checkbox"
+                          checked={form.categories.includes(cat)}
+                          onChange={() => toggleCategory(cat)}
+                          className="form-checkbox"
+                        />
+                        <span className="category-option-text">{cat}</span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
                 <div className="gov-form-actions">
                   <button type="button" className="gov-btn gov-btn-secondary" onClick={resetForm}>
                     {t.cancel}
@@ -271,7 +320,15 @@ function AdminQuestions() {
                     <div className="question-content">
                       <div className="question-header">
                         <span className="question-language">{q.language.toUpperCase()}</span>
-                        {q.category && <span className="question-category">{q.category}</span>}
+                        {q.category && (
+                          <div className="question-categories">
+                            {q.category.split(',').map((c, i) => (
+                              <span key={i} className="question-category-tag">
+                                {c.trim()}
+                              </span>
+                            ))}
+                          </div>
+                        )}
                       </div>
                       <p className="question-text">
                         {q.question_text || <img src={q.question_image_url} alt="Question" />}
