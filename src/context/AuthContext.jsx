@@ -78,13 +78,7 @@ export function AuthProvider({ children }) {
         throw new Error(error.message || 'Failed to sign up. Please check your Supabase configuration.')
       }
       
-      // If email confirmation is required, the user won't be signed in immediately
-      // The profile will be created by the trigger when they confirm their email
-      if (data.user) {
-        // User is signed in immediately (email confirmation disabled)
-        // Profile will be created by handle_new_user trigger
-      }
-      
+      // Profile will be created by handle_new_user trigger automatically
       return data
     } catch (err) {
       if (err.message) throw err

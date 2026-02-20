@@ -18,19 +18,6 @@ function Login() {
   const pendingNavigate = useRef(false)
   const hasNavigated = useRef(false)
 
-  // Redirect if already logged in
-  useEffect(() => {
-    if (!loading && user && !hasNavigated.current) {
-      hasNavigated.current = true
-      const targetRole = role ?? 'user'
-      if (targetRole === 'admin') {
-        navigate('/admin/dashboard', { replace: true })
-      } else {
-        navigate('/user/dashboard', { replace: true })
-      }
-    }
-  }, [user, role, loading, navigate])
-
   const update = (field, value) => {
     setForm((prev) => ({ ...prev, [field]: value }))
     if (errors[field]) setErrors((prev) => ({ ...prev, [field]: '' }))
@@ -45,24 +32,34 @@ function Login() {
     return Object.keys(e).length === 0
   }
 
-  // Navigate when auth context is ready after sign-in (listener is single source of truth)
+  // Single unified navigation effect: handles both already-logged-in users and post-login navigation
   useEffect(() => {
-    if (!pendingNavigate.current || !user || loading || hasNavigated.current) return
+    if (loading || !user || hasNavigated.current) return
     
-    // Wait a bit for profile to load if role is not yet available
-    const timer = setTimeout(() => {
-      if (hasNavigated.current) return
-      hasNavigated.current = true
-      pendingNavigate.current = false
-      const targetRole = role ?? 'user'
-      if (targetRole === 'admin') {
-        navigate('/admin/dashboard', { replace: true })
-      } else {
-        navigate('/user/dashboard', { replace: true })
-      }
-    }, 300)
-
-    return () => clearTimeout(timer)
+    // If user just logged in (pendingNavigate is set), wait a bit for profile to load
+    if (pendingNavigate.current) {
+      const timer = setTimeout(() => {
+        if (hasNavigated.current) return
+        hasNavigated.current = true
+        pendingNavigate.current = false
+        const targetRole = role ?? 'user'
+        if (targetRole === 'admin') {
+          navigate('/admin/dashboard', { replace: true })
+        } else {
+          navigate('/user/dashboard', { replace: true })
+        }
+      }, 300)
+      return () => clearTimeout(timer)
+    }
+    
+    // If user is already logged in (not from this login), navigate immediately
+    hasNavigated.current = true
+    const targetRole = role ?? 'user'
+    if (targetRole === 'admin') {
+      navigate('/admin/dashboard', { replace: true })
+    } else {
+      navigate('/user/dashboard', { replace: true })
+    }
   }, [user, role, loading, navigate])
 
   const handleSubmit = async (e) => {

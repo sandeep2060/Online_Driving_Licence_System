@@ -25,8 +25,8 @@ function SignUp() {
   const { signUp } = useAuth()
   const navigate = useNavigate()
   const t = translations[language]?.signUp || translations.en.signUp
-  const [submitting, setSubmitting] = useState(false)
-  const [notification, setNotification] = useState(null)
+    const [submitting, setSubmitting] = useState(false)
+const [notification, setNotification] = useState(null)
 
   const [form, setForm] = useState({
     firstName: '',
@@ -100,12 +100,12 @@ function SignUp() {
 
   const handleSubmit = async (e) => {
     e.preventDefault()
-    if (!validate()) return
+if (!validate()) return
     setSubmitting(true)
-    try {
+        try {
       await signUp({
-        email: form.email,
-        password: form.password,
+email: form.email,
+password: form.password,
         first_name: form.firstName,
         middle_name: form.middleName || undefined,
         last_name: form.lastName,
@@ -246,29 +246,29 @@ function SignUp() {
 
           <Input
             label={t.email}
-            type="email"
-            id="signup-email"
+          type="email"
+          id="signup-email"
             name="email"
-            value={form.email}
-            onChange={(e) => update('email', e.target.value)}
-            error={errors.email}
+          value={form.email}
+          onChange={(e) => update('email', e.target.value)}
+error={errors.email}
             placeholder="john@example.com"
-            required
-            autoComplete="email"
-          />
-
+          required
+          autoComplete="email"
+        />
+        
           <div className="form-row form-row-2">
             <Input
               label={t.password}
-              type="password"
-              id="signup-password"
+          type="password"
+          id="signup-password"
               name="password"
-              value={form.password}
-              onChange={(e) => update('password', e.target.value)}
-              error={errors.password}
+          value={form.password}
+          onChange={(e) => update('password', e.target.value)}
+error={errors.password}
               placeholder="Min 6 characters"
-              required
-              autoComplete="new-password"
+          required
+          autoComplete="new-password"
             />
             <Input
               label={t.confirmPassword}
@@ -302,17 +302,17 @@ function SignUp() {
             error={errors.termsSystem}
           />
 
-          <button type="submit" className="btn btn-primary btn-full" disabled={submitting}>
-            {submitting ? 'Signing up...' : t.submit}
-          </button>
-        </form>
-
+        <button type="submit" className="btn btn-primary btn-full" disabled={submitting}>
+          {submitting ? 'Signing up...' : t.submit}
+        </button>
+      </form>
+      
         <p className="page-footer">
           {t.haveAccount} <Link to="/login">{translations[language]?.auth?.signIn || 'Sign In'}</Link>
         </p>
       </div>
     </div>
-    </PageLayout>
+</PageLayout>
     </>
   )
 }
