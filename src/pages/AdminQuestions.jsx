@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useLanguage } from '../context/LanguageContext.jsx'
 import { supabase } from '../lib/supabase.js'
-import PageLayout from '../components/PageLayout.jsx'
+import AdminLayout from '../components/AdminLayout.jsx'
 import Input from '../components/Input.jsx'
 import Select from '../components/Select.jsx'
 import { translations } from '../translations.js'
@@ -158,13 +158,13 @@ function AdminQuestions() {
 
   if (loading) {
     return (
-      <PageLayout>
+      <AdminLayout>
         <div className="page page-admin">
           <div className="page-card">
             <p>Loading questions...</p>
           </div>
         </div>
-      </PageLayout>
+      </AdminLayout>
     )
   }
 
@@ -178,7 +178,7 @@ function AdminQuestions() {
           onClose={() => setNotification(null)}
         />
       )}
-      <PageLayout>
+      <AdminLayout>
         <div className="page page-admin">
           <div className="page-card">
             <div className="admin-header">
@@ -297,7 +297,7 @@ function AdminQuestions() {
             </div>
           </div>
         </div>
-      </PageLayout>
+      </AdminLayout>
     </>
   )
 }

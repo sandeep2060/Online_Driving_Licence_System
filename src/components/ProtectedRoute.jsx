@@ -16,7 +16,8 @@ function ProtectedRoute({ children, requiredRole }) {
   }
 
   if (!user) {
-    return <Navigate to="/login" state={{ from: location }} replace />
+    const isAdminRoute = location.pathname.startsWith('/admin')
+    return <Navigate to={isAdminRoute ? '/adminlogin' : '/login'} state={{ from: location }} replace />
   }
 
   // Role-based redirects:

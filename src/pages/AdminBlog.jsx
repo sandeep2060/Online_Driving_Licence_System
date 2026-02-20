@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useLanguage } from '../context/LanguageContext.jsx'
 import { supabase } from '../lib/supabase.js'
-import PageLayout from '../components/PageLayout.jsx'
+import AdminLayout from '../components/AdminLayout.jsx'
 import Input from '../components/Input.jsx'
 import { translations } from '../translations.js'
 import ProtectedRoute from '../components/ProtectedRoute.jsx'
@@ -130,13 +130,13 @@ function AdminBlog() {
 
   if (loading) {
     return (
-      <PageLayout>
+      <AdminLayout>
         <div className="page page-admin">
           <div className="page-card">
             <p>Loading posts...</p>
           </div>
         </div>
-      </PageLayout>
+      </AdminLayout>
     )
   }
 
@@ -150,7 +150,7 @@ function AdminBlog() {
           onClose={() => setNotification(null)}
         />
       )}
-      <PageLayout>
+      <AdminLayout>
         <div className="page page-admin">
           <div className="page-card">
             <div className="admin-header">
@@ -221,7 +221,7 @@ function AdminBlog() {
             </div>
           </div>
         </div>
-      </PageLayout>
+      </AdminLayout>
     </>
   )
 }

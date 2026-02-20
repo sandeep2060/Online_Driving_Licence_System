@@ -2,10 +2,10 @@ import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext.jsx'
 import { supabase } from '../lib/supabase.js'
-import PageLayout from '../components/PageLayout.jsx'
+import AdminLayout from '../components/AdminLayout.jsx'
 
 function AdminDashboard() {
-  const { user, profile, signOut } = useAuth()
+  const { user } = useAuth()
   const [stats, setStats] = useState({
     kycPending: 0,
     kycVerified: 0,
@@ -41,13 +41,8 @@ function AdminDashboard() {
   }
 
   return (
-    <PageLayout>
-      <div className="page page-dashboard admin-dashboard">
-        <div className="page-card">
-          <h1 className="page-title">Admin Dashboard</h1>
-          <p className="page-subtitle">Welcome, {profile?.first_name || user?.email}</p>
-
-          <div className="dashboard-stats">
+    <AdminLayout>
+      <div className="dashboard-stats">
             <div className="stat-card">
               <span className="stat-value">{stats.kycPending}</span>
               <span className="stat-label">Pending KYC</span>
@@ -81,13 +76,7 @@ function AdminDashboard() {
               <p>Manage blog posts and notices</p>
             </Link>
           </div>
-
-          <button type="button" className="btn btn-secondary btn-full" onClick={() => signOut()}>
-            Sign Out
-          </button>
-        </div>
-      </div>
-    </PageLayout>
+    </AdminLayout>
   )
 }
 

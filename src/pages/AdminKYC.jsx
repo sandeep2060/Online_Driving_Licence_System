@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { useLanguage } from '../context/LanguageContext.jsx'
 import { useAuth } from '../context/AuthContext.jsx'
 import { supabase } from '../lib/supabase.js'
-import PageLayout from '../components/PageLayout.jsx'
+import AdminLayout from '../components/AdminLayout.jsx'
 import { translations } from '../translations.js'
 import ProtectedRoute from '../components/ProtectedRoute.jsx'
 import Notification from '../components/Notification.jsx'
@@ -106,13 +106,13 @@ function AdminKYC() {
 
   if (loading) {
     return (
-      <PageLayout>
+      <AdminLayout>
         <div className="page page-admin">
           <div className="page-card">
             <p>Loading KYC applications...</p>
           </div>
         </div>
-      </PageLayout>
+      </AdminLayout>
     )
   }
 
@@ -126,7 +126,7 @@ function AdminKYC() {
           onClose={() => setNotification(null)}
         />
       )}
-      <PageLayout>
+      <AdminLayout>
         <div className="page page-admin">
           <div className="page-card">
             <h1 className="page-title">{t.title}</h1>
@@ -331,7 +331,7 @@ function AdminKYC() {
             )}
           </div>
         </div>
-      </PageLayout>
+      </AdminLayout>
     </>
   )
 }

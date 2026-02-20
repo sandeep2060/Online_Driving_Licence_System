@@ -8,6 +8,7 @@ import './index.css'
 import App from './App.jsx'
 import SignUp from './pages/SignUp.jsx'
 import Login from './pages/Login.jsx'
+import AdminLogin from './pages/AdminLogin.jsx'
 import AdminDashboard from './pages/AdminDashboard.jsx'
 import UserDashboard from './pages/UserDashboard.jsx'
 import Profile from './pages/Profile.jsx'
@@ -26,6 +27,7 @@ createRoot(document.getElementById('root')).render(
             <Route path="/" element={<App />} />
             <Route path="/signup" element={<SignUp />} />
             <Route path="/login" element={<Login />} />
+            <Route path="/adminlogin" element={<AdminLogin />} />
             <Route
               path="/admin/dashboard"
               element={
