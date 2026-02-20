@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useLanguage } from '../context/LanguageContext.jsx'
 import { useAuth } from '../context/AuthContext.jsx'
@@ -23,8 +23,20 @@ const BLOOD_GROUP_OPTIONS = [
 
 function SignUp() {
   const { language } = useLanguage()
-  const { signUp } = useAuth()
+  const { signUp, user, role } = useAuth()
   const navigate = useNavigate()
+  
+  // Redirect if already logged in
+  useEffect(() => {
+    if (user) {
+      const targetRole = role ?? 'user'
+      if (targetRole === 'admin') {
+        navigate('/admin/dashboard', { replace: true })
+      } else {
+        navigate('/user/dashboard', { replace: true })
+      }
+    }
+  }, [user, role, navigate])
   const t = translations[language]?.signUp || translations.en.signUp
     const [submitting, setSubmitting] = useState(false)
 const [notification, setNotification] = useState(null)
@@ -166,12 +178,40 @@ const [notification, setNotification] = useState(null)
         }
       }
 
-      setNotification({
-        type: 'success',
-        title: 'Account created',
-        message: 'Your account was created successfully. Redirecting to login…',
-      })
-      setTimeout(() => navigate('/login', { replace: true }), 2000)
+      // Auto-login after signup and redirect to dashboard
+      // Note: If email confirmation is required, session might be null
+      if (signUpResult?.user) {
+        if (signUpResult?.session) {
+          // Session exists - user is logged in
+          setNotification({
+            type: 'success',
+            title: 'Account created',
+            message: 'Your account was created successfully. Redirecting to dashboard...',
+          })
+          
+          // Wait for profile to be created by trigger and auth state to propagate
+          await new Promise(resolve => setTimeout(resolve, 1500))
+          
+          // Redirect to dashboard
+          navigate('/user/dashboard', { replace: true })
+        } else {
+          // No session - email confirmation might be required
+          setNotification({
+            type: 'info',
+            title: 'Account created',
+            message: 'Please check your email to confirm your account, then sign in.',
+          })
+          setTimeout(() => navigate('/login', { replace: true }), 3000)
+        }
+      } else {
+        // Fallback - should not happen
+        setNotification({
+          type: 'success',
+          title: 'Account created',
+          message: 'Your account was created successfully. Please sign in.',
+        })
+        setTimeout(() => navigate('/login', { replace: true }), 2000)
+      }
     } catch (err) {
       console.error('Sign up error:', err)
       const errorMessage = err.message || 'Something went wrong while creating your account. Please try again.'

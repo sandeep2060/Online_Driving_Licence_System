@@ -1,6 +1,13 @@
 import { createContext, useContext, useState, useEffect } from 'react'
 import { supabase } from '../lib/supabase.js'
 import { testSupabaseConnection, logAuthError } from '../utils/debugAuth.js'
+import { 
+  saveTokens, 
+  clearTokens, 
+  hasValidSession, 
+  isTokenExpired,
+  getRemainingSessionTime 
+} from '../utils/tokenStorage.js'
 
 const AuthContext = createContext(null)
 
@@ -37,13 +44,41 @@ export function AuthProvider({ children }) {
   }
 
   useEffect(() => {
+    // Test connection on mount
+    testSupabaseConnection().catch(console.error)
+    
+    // Check for stored session first
+    const checkStoredSession = async () => {
+      if (hasValidSession()) {
+        console.log('🔄 Restoring session from localStorage...')
+        const remaining = getRemainingSessionTime()
+        const hours = Math.floor(remaining / (60 * 60 * 1000))
+        console.log(`⏰ Session valid for ${hours} more hours`)
+      } else if (isTokenExpired()) {
+        console.log('⏰ Stored session expired, clearing tokens...')
+        clearTokens()
+      }
+    }
+    
+    checkStoredSession()
+    
     supabase.auth.getSession().then(async ({ data: { session } }) => {
       setUser(session?.user ?? null)
       if (session?.user) {
+        // Save tokens to localStorage
+        if (session.access_token && session.refresh_token) {
+          saveTokens(session.access_token, session.refresh_token)
+        }
         await fetchProfile(session.user.id)
       } else {
         setProfile(null)
+        clearTokens()
       }
+      setLoading(false)
+    }).catch((err) => {
+      console.error('Error getting session:', err)
+      logAuthError('getSession', err)
+      clearTokens()
       setLoading(false)
     })
 
@@ -52,9 +87,14 @@ export function AuthProvider({ children }) {
     } = supabase.auth.onAuthStateChange(async (_event, session) => {
       setUser(session?.user ?? null)
       if (session?.user) {
+        // Save tokens to localStorage whenever auth state changes
+        if (session.access_token && session.refresh_token) {
+          saveTokens(session.access_token, session.refresh_token)
+        }
         await fetchProfile(session.user.id)
       } else {
         setProfile(null)
+        clearTokens()
       }
       setLoading(false)
     })
@@ -82,6 +122,8 @@ export function AuthProvider({ children }) {
             ...metadata,
             role: 'user',
           },
+          // Enable email confirmation can be disabled for testing
+          // For production, set this based on your Supabase settings
         },
       })
       
@@ -106,6 +148,11 @@ export function AuthProvider({ children }) {
       
       if (!data?.user) {
         throw new Error('Account creation failed. Please try again.')
+      }
+      
+      // Save tokens to localStorage if session exists
+      if (data.session?.access_token && data.session?.refresh_token) {
+        saveTokens(data.session.access_token, data.session.refresh_token)
       }
       
       // Profile will be created by handle_new_user trigger automatically
@@ -154,6 +201,14 @@ export function AuthProvider({ children }) {
         throw new Error('Login failed. Please try again.')
       }
       
+      // Save tokens to localStorage
+      if (data.session?.access_token && data.session?.refresh_token) {
+        saveTokens(data.session.access_token, data.session.refresh_token)
+        const remaining = getRemainingSessionTime()
+        const hours = Math.floor(remaining / (60 * 60 * 1000))
+        console.log(`✅ Login successful! Session valid for ${hours} hours`)
+      }
+      
       // Don't update state here—onAuthStateChange is the single source of truth.
       // Listener will fetch profile and update context; we just return success.
       // Wait a moment for the auth state change to propagate
@@ -167,6 +222,7 @@ export function AuthProvider({ children }) {
 
   const signOut = async () => {
     await supabase.auth.signOut()
+    clearTokens()
     setUser(null)
     setProfile(null)
   }
