@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useLanguage } from '../context/LanguageContext.jsx'
 import { useAuth } from '../context/AuthContext.jsx'
+import { supabase } from '../lib/supabase.js'
 import PageLayout from '../components/PageLayout.jsx'
 import { translations } from '../translations.js'
 import Input from '../components/Input.jsx'
@@ -100,12 +101,22 @@ const [notification, setNotification] = useState(null)
 
   const handleSubmit = async (e) => {
     e.preventDefault()
-if (!validate()) return
+    if (!validate()) {
+      setNotification({
+        type: 'error',
+        title: 'Validation failed',
+        message: 'Please fill in all required fields correctly.',
+      })
+      return
+    }
+    
     setSubmitting(true)
-        try {
-      await signUp({
-email: form.email,
-password: form.password,
+    setErrors({})
+    
+    try {
+      const signUpResult = await signUp({
+        email: form.email,
+        password: form.password,
         first_name: form.firstName,
         middle_name: form.middleName || undefined,
         last_name: form.lastName,
@@ -116,6 +127,45 @@ password: form.password,
         phone: form.phone,
         role: 'user',
       })
+
+      // Save terms acceptance if user was created
+      // Wait a moment for auth state to propagate
+      if (signUpResult?.user) {
+        await new Promise(resolve => setTimeout(resolve, 300))
+        
+        try {
+          const termsToInsert = []
+          
+          if (form.termsExam) {
+            termsToInsert.push({
+              user_id: signUpResult.user.id,
+              terms_type: 'exam',
+            })
+          }
+          
+          if (form.termsSystem) {
+            termsToInsert.push({
+              user_id: signUpResult.user.id,
+              terms_type: 'system',
+            })
+          }
+
+          if (termsToInsert.length > 0) {
+            const { error: termsError } = await supabase
+              .from('terms_acceptance')
+              .insert(termsToInsert)
+            
+            if (termsError) {
+              console.warn('Failed to save terms acceptance:', termsError)
+              // Don't fail sign-up if terms saving fails - user can accept terms later
+            }
+          }
+        } catch (termsErr) {
+          console.warn('Error saving terms acceptance:', termsErr)
+          // Don't fail sign-up if terms saving fails
+        }
+      }
+
       setNotification({
         type: 'success',
         title: 'Account created',
@@ -123,11 +173,13 @@ password: form.password,
       })
       setTimeout(() => navigate('/login', { replace: true }), 2000)
     } catch (err) {
-      setErrors({ email: err.message || 'Sign up failed' })
+      console.error('Sign up error:', err)
+      const errorMessage = err.message || 'Something went wrong while creating your account. Please try again.'
+      setErrors({ email: errorMessage })
       setNotification({
         type: 'error',
         title: 'Sign up failed',
-        message: err.message || 'Something went wrong while creating your account.',
+        message: errorMessage,
       })
     } finally {
       setSubmitting(false)

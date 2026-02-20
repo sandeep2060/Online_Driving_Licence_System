@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useEffect } from 'react'
 import { supabase } from '../lib/supabase.js'
+import { testSupabaseConnection, logAuthError } from '../utils/debugAuth.js'
 
 const AuthContext = createContext(null)
 
@@ -63,8 +64,18 @@ export function AuthProvider({ children }) {
 
   const signUp = async ({ email, password, ...metadata }) => {
     try {
+      // Validate email format
+      if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        throw new Error('Please enter a valid email address.')
+      }
+
+      // Validate password
+      if (!password || password.length < 6) {
+        throw new Error('Password must be at least 6 characters long.')
+      }
+
       const { data, error } = await supabase.auth.signUp({
-        email,
+        email: email.trim(),
         password,
         options: {
           data: {
@@ -73,9 +84,28 @@ export function AuthProvider({ children }) {
           },
         },
       })
+      
       if (error) {
-        console.error('Sign up error:', error)
-        throw new Error(error.message || 'Failed to sign up. Please check your Supabase configuration.')
+        logAuthError('signUp', error)
+        
+        // Provide user-friendly error messages
+        let errorMessage = error.message || 'Failed to sign up. Please check your Supabase configuration.'
+        
+        if (error.message?.includes('already registered') || error.message?.includes('already exists')) {
+          errorMessage = 'An account with this email already exists. Please sign in instead.'
+        } else if (error.message?.includes('invalid email')) {
+          errorMessage = 'Please enter a valid email address.'
+        } else if (error.message?.includes('password')) {
+          errorMessage = 'Password does not meet requirements. Please use at least 6 characters.'
+        } else if (error.message?.includes('Invalid API key') || error.message?.includes('JWT')) {
+          errorMessage = 'Supabase configuration error. Please check your .env file.'
+        }
+        
+        throw new Error(errorMessage)
+      }
+      
+      if (!data?.user) {
+        throw new Error('Account creation failed. Please try again.')
       }
       
       // Profile will be created by handle_new_user trigger automatically
@@ -88,15 +118,46 @@ export function AuthProvider({ children }) {
 
   const signIn = async (email, password) => {
     try {
-      const { data, error } = await supabase.auth.signInWithPassword({ email, password })
-      if (error) {
-        console.error('Sign in error:', error)
-        throw new Error(error.message || 'Invalid email or password')
+      // Validate inputs
+      if (!email || !email.trim()) {
+        throw new Error('Please enter your email address.')
       }
+      if (!password) {
+        throw new Error('Please enter your password.')
+      }
+
+      const { data, error } = await supabase.auth.signInWithPassword({ 
+        email: email.trim(), 
+        password 
+      })
+      
+      if (error) {
+        logAuthError('signIn', error)
+        
+        // Provide user-friendly error messages
+        let errorMessage = error.message || 'Invalid email or password'
+        
+        if (error.message?.includes('Invalid login credentials') || 
+            error.message?.includes('invalid') ||
+            error.message?.includes('Email not confirmed')) {
+          errorMessage = 'Invalid email or password. Please check your credentials and try again.'
+        } else if (error.message?.includes('Email rate limit')) {
+          errorMessage = 'Too many login attempts. Please try again later.'
+        } else if (error.message?.includes('Invalid API key') || error.message?.includes('JWT')) {
+          errorMessage = 'Supabase configuration error. Please check your .env file.'
+        }
+        
+        throw new Error(errorMessage)
+      }
+      
+      if (!data?.user) {
+        throw new Error('Login failed. Please try again.')
+      }
+      
       // Don't update state here—onAuthStateChange is the single source of truth.
       // Listener will fetch profile and update context; we just return success.
       // Wait a moment for the auth state change to propagate
-      await new Promise(resolve => setTimeout(resolve, 100))
+      await new Promise(resolve => setTimeout(resolve, 200))
       return { user: data.user }
     } catch (err) {
       if (err.message) throw err

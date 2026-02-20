@@ -17,6 +17,7 @@ function Login() {
   const [submitting, setSubmitting] = useState(false)
   const pendingNavigate = useRef(false)
   const hasNavigated = useRef(false)
+  const navigationTimeoutRef = useRef(null)
 
   const update = (field, value) => {
     setForm((prev) => ({ ...prev, [field]: value }))
@@ -36,56 +37,103 @@ function Login() {
   useEffect(() => {
     if (loading || !user || hasNavigated.current) return
     
+    // Clear navigation timeout if navigation succeeds
+    if (navigationTimeoutRef.current) {
+      clearTimeout(navigationTimeoutRef.current)
+      navigationTimeoutRef.current = null
+    }
+    
     // If user just logged in (pendingNavigate is set), wait a bit for profile to load
     if (pendingNavigate.current) {
       const timer = setTimeout(() => {
         if (hasNavigated.current) return
         hasNavigated.current = true
         pendingNavigate.current = false
-        const targetRole = role ?? 'user'
+        setSubmitting(false) // Reset submitting state when navigating
+        const targetRole = role ?? 'user' // Default to 'user' if role is null
         if (targetRole === 'admin') {
           navigate('/admin/dashboard', { replace: true })
         } else {
           navigate('/user/dashboard', { replace: true })
         }
-      }, 300)
+      }, 600) // Wait for profile to load
       return () => clearTimeout(timer)
     }
     
     // If user is already logged in (not from this login), navigate immediately
-    hasNavigated.current = true
-    const targetRole = role ?? 'user'
-    if (targetRole === 'admin') {
-      navigate('/admin/dashboard', { replace: true })
-    } else {
-      navigate('/user/dashboard', { replace: true })
+    if (!pendingNavigate.current) {
+      hasNavigated.current = true
+      setSubmitting(false)
+      const targetRole = role ?? 'user' // Default to 'user' if role is null
+      if (targetRole === 'admin') {
+        navigate('/admin/dashboard', { replace: true })
+      } else {
+        navigate('/user/dashboard', { replace: true })
+      }
     }
   }, [user, role, loading, navigate])
 
   const handleSubmit = async (e) => {
     e.preventDefault()
     if (!validate()) return
+    
+    // Clear any existing timeout
+    if (navigationTimeoutRef.current) {
+      clearTimeout(navigationTimeoutRef.current)
+      navigationTimeoutRef.current = null
+    }
+    
     setSubmitting(true)
     setErrors({})
     hasNavigated.current = false
+    pendingNavigate.current = false
     
     try {
-      await signIn(form.email, form.password)
+      await signIn(form.email.trim(), form.password)
       pendingNavigate.current = true
       // onAuthStateChange will update user/role; useEffect above will navigate
+      
+      // Fallback: if navigation doesn't happen within 3 seconds, reset submitting
+      navigationTimeoutRef.current = setTimeout(() => {
+        if (!hasNavigated.current) {
+          console.warn('Navigation timeout - resetting submitting state')
+          setSubmitting(false)
+          pendingNavigate.current = false
+          // Try navigation anyway with default role if user exists
+          if (user) {
+            const targetRole = role ?? 'user'
+            hasNavigated.current = true
+            if (targetRole === 'admin') {
+              navigate('/admin/dashboard', { replace: true })
+            } else {
+              navigate('/user/dashboard', { replace: true })
+            }
+          }
+        }
+        navigationTimeoutRef.current = null
+      }, 3000)
     } catch (err) {
       console.error('Login error:', err)
       setErrors({ password: err.message || 'Invalid email or password' })
       pendingNavigate.current = false
-    } finally {
-      // Don't set submitting to false immediately - wait for navigation
-      setTimeout(() => {
-        if (!hasNavigated.current) {
-          setSubmitting(false)
-        }
-      }, 100)
+      setSubmitting(false)
+      
+      // Clear timeout on error
+      if (navigationTimeoutRef.current) {
+        clearTimeout(navigationTimeoutRef.current)
+        navigationTimeoutRef.current = null
+      }
     }
   }
+  
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (navigationTimeoutRef.current) {
+        clearTimeout(navigationTimeoutRef.current)
+      }
+    }
+  }, [])
 
   return (
     <PageLayout>

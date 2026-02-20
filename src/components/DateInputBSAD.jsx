@@ -97,11 +97,21 @@ function DateInputBSAD({ value, onChange, required, id, name }) {
     const newMode = inputMode === 'AD' ? 'BS' : 'AD'
     setInputMode(newMode)
     if (inputValue) {
+      // Parse the current value using the OLD mode to get the ISO date
       const parsed = parseAndConvert(inputValue, inputMode)
       if (parsed) {
-        const newVal = newMode === 'AD' ? parsed.ad : parsed.bs
-        setInputValue(newVal)
-        setConvertedDisplay(newMode === 'AD' ? `BS: ${parsed.bs}` : `AD: ${parsed.ad}`)
+        // Then convert to the new mode
+        const newParsed = parseAndConvert(
+          newMode === 'AD' ? parsed.ad : parsed.bs,
+          newMode
+        )
+        if (newParsed) {
+          const newVal = newMode === 'AD' ? newParsed.ad : newParsed.bs
+          setInputValue(newVal)
+          setConvertedDisplay(newMode === 'AD' ? `BS: ${newParsed.bs}` : `AD: ${newParsed.ad}`)
+          // Update the parent with the ISO date
+          onChange?.(newParsed.iso)
+        }
       }
     } else {
       setConvertedDisplay('')
