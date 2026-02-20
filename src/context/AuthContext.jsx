@@ -4,7 +4,7 @@ import { testSupabaseConnection, logAuthError } from '../utils/debugAuth.js'
 import { 
   saveTokens, 
   clearTokens, 
-  hasValidSession, 
+  getAccessToken,
   isTokenExpired,
   getRemainingSessionTime 
 } from '../utils/tokenStorage.js'
@@ -47,14 +47,9 @@ export function AuthProvider({ children }) {
     // Test connection on mount
     testSupabaseConnection().catch(console.error)
     
-    // Check for stored session first
-    const checkStoredSession = async () => {
-      if (hasValidSession()) {
-        console.log('🔄 Restoring session from localStorage...')
-        const remaining = getRemainingSessionTime()
-        const hours = Math.floor(remaining / (60 * 60 * 1000))
-        console.log(`⏰ Session valid for ${hours} more hours`)
-      } else if (isTokenExpired()) {
+    // Only clear localStorage tokens if they exist and are expired (avoids clearing on every load)
+    const checkStoredSession = () => {
+      if (getAccessToken() && isTokenExpired()) {
         console.log('⏰ Stored session expired, clearing tokens...')
         clearTokens()
       }
@@ -69,12 +64,13 @@ export function AuthProvider({ children }) {
         if (session.access_token && session.refresh_token) {
           saveTokens(session.access_token, session.refresh_token)
         }
-        await fetchProfile(session.user.id)
+        setLoading(false)
+        fetchProfile(session.user.id).catch(console.error)
       } else {
         setProfile(null)
         clearTokens()
+        setLoading(false)
       }
-      setLoading(false)
     }).catch((err) => {
       console.error('Error getting session:', err)
       logAuthError('getSession', err)
@@ -91,12 +87,14 @@ export function AuthProvider({ children }) {
         if (session.access_token && session.refresh_token) {
           saveTokens(session.access_token, session.refresh_token)
         }
-        await fetchProfile(session.user.id)
+        // Set loading false immediately so Login can navigate; fetch profile in background
+        setLoading(false)
+        fetchProfile(session.user.id).catch(console.error)
       } else {
         setProfile(null)
         clearTokens()
+        setLoading(false)
       }
-      setLoading(false)
     })
 
     return () => subscription.unsubscribe()

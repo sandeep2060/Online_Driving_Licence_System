@@ -43,20 +43,20 @@ function Login() {
       navigationTimeoutRef.current = null
     }
     
-    // If user just logged in (pendingNavigate is set), wait a bit for profile to load
+    // If user just logged in (pendingNavigate is set), navigate after short delay
     if (pendingNavigate.current) {
       const timer = setTimeout(() => {
         if (hasNavigated.current) return
         hasNavigated.current = true
         pendingNavigate.current = false
-        setSubmitting(false) // Reset submitting state when navigating
-        const targetRole = role ?? 'user' // Default to 'user' if role is null
+        setSubmitting(false)
+        const targetRole = role ?? 'user'
         if (targetRole === 'admin') {
           navigate('/admin/dashboard', { replace: true })
         } else {
           navigate('/user/dashboard', { replace: true })
         }
-      }, 600) // Wait for profile to load
+      }, 400)
       return () => clearTimeout(timer)
     }
     
@@ -91,27 +91,18 @@ function Login() {
     try {
       await signIn(form.email.trim(), form.password)
       pendingNavigate.current = true
-      // onAuthStateChange will update user/role; useEffect above will navigate
+      // onAuthStateChange will set user and loading=false; useEffect will navigate
       
-      // Fallback: if navigation doesn't happen within 3 seconds, reset submitting
+      // Direct fallback: if useEffect hasn't navigated within 1.5s, navigate anyway
       navigationTimeoutRef.current = setTimeout(() => {
         if (!hasNavigated.current) {
-          console.warn('Navigation timeout - resetting submitting state')
+          hasNavigated.current = true
           setSubmitting(false)
           pendingNavigate.current = false
-          // Try navigation anyway with default role if user exists
-          if (user) {
-            const targetRole = role ?? 'user'
-            hasNavigated.current = true
-            if (targetRole === 'admin') {
-              navigate('/admin/dashboard', { replace: true })
-            } else {
-              navigate('/user/dashboard', { replace: true })
-            }
-          }
+          navigate('/user/dashboard', { replace: true })
         }
         navigationTimeoutRef.current = null
-      }, 3000)
+      }, 1500)
     } catch (err) {
       console.error('Login error:', err)
       setErrors({ password: err.message || 'Invalid email or password' })
