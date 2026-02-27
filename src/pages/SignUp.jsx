@@ -66,18 +66,34 @@ const [notification, setNotification] = useState(null)
 
   const validate = () => {
     const e = {}
-    if (!form.firstName?.trim()) e.firstName = 'Required'
-    if (!form.lastName?.trim()) e.lastName = 'Required'
+
+    // Name validation
+    const nameRegex = /^[A-Za-z\s'.-]{2,}$/
+    if (!form.firstName?.trim()) {
+      e.firstName = 'First name is required'
+    } else if (!nameRegex.test(form.firstName.trim())) {
+      e.firstName = 'First name must be at least 2 letters'
+    }
+
+    if (!form.lastName?.trim()) {
+      e.lastName = 'Last name is required'
+    } else if (!nameRegex.test(form.lastName.trim())) {
+      e.lastName = 'Last name must be at least 2 letters'
+    }
+
+    // DOB + age validation
     if (!form.dob?.trim()) {
-      e.dob = 'Required'
+      e.dob = 'Date of birth is required'
     } else {
-      // Age validation: must be at least 18 years
       const parts = form.dob.split('-').map((p) => parseInt(p, 10))
       if (parts.length === 3 && !parts.some(Number.isNaN)) {
         const [year, month, day] = parts
         const today = new Date()
         const dobDate = new Date(year, month - 1, day)
-        if (!Number.isNaN(dobDate.getTime())) {
+
+        if (Number.isNaN(dobDate.getTime())) {
+          e.dob = 'Invalid date of birth'
+        } else {
           let age = today.getFullYear() - year
           const beforeBirthday =
             today.getMonth() < month - 1 ||
@@ -95,18 +111,53 @@ const [notification, setNotification] = useState(null)
             })
           }
         }
+      } else {
+        e.dob = 'Invalid date of birth'
       }
     }
-    if (!form.gender) e.gender = 'Required'
-    if (!form.bloodGroup) e.bloodGroup = 'Required'
-    if (!form.phone?.trim()) e.phone = 'Required'
-    if (!form.email?.trim()) e.email = 'Required'
-    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) e.email = 'Invalid email'
-    if (!form.password) e.password = 'Required'
-    else if (form.password.length < 6) e.password = 'Min 6 characters'
-    if (form.password !== form.confirmPassword) e.confirmPassword = 'Passwords do not match'
-    if (!form.termsExam) e.termsExam = 'Required'
-    if (!form.termsSystem) e.termsSystem = 'Required'
+
+    if (!form.gender) e.gender = 'Gender is required'
+    if (!form.bloodGroup) e.bloodGroup = 'Blood group is required'
+
+    // Phone validation (Nepali mobile format)
+    const rawPhone = form.phone?.trim()
+    if (!rawPhone) {
+      e.phone = 'Phone number is required'
+    } else {
+      // Allow optional +977 prefix
+      const normalized = rawPhone.startsWith('+977')
+        ? rawPhone.replace('+977', '').trim()
+        : rawPhone
+      const digitsOnly = normalized.replace(/\D/g, '')
+
+      if (digitsOnly.length !== 10 || !/^9[78]\d{8}$/.test(digitsOnly)) {
+        e.phone = 'Enter a valid Nepali mobile number (e.g. 98XXXXXXXX)'
+      }
+    }
+
+    // Email validation
+    if (!form.email?.trim()) {
+      e.email = 'Email is required'
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email.trim())) {
+      e.email = 'Enter a valid email address'
+    }
+
+    // Password validation
+    if (!form.password) {
+      e.password = 'Password is required'
+    } else if (form.password.length < 8) {
+      e.password = 'Password must be at least 8 characters'
+    }
+
+    if (!form.confirmPassword) {
+      e.confirmPassword = 'Please confirm your password'
+    } else if (form.password !== form.confirmPassword) {
+      e.confirmPassword = 'Passwords do not match'
+    }
+
+    if (!form.termsExam) e.termsExam = 'You must accept the exam terms'
+    if (!form.termsSystem) e.termsSystem = 'You must accept the system terms'
+
     setErrors(e)
     return Object.keys(e).length === 0
   }
@@ -252,7 +303,7 @@ const [notification, setNotification] = useState(null)
               onChange={(e) => update('firstName', e.target.value)}
               error={errors.firstName}
               required
-              placeholder="John"
+              placeholder="Sandeep"
               autoComplete="given-name"
             />
             <Input
@@ -272,7 +323,7 @@ const [notification, setNotification] = useState(null)
               onChange={(e) => update('lastName', e.target.value)}
               error={errors.lastName}
               required
-              placeholder="Doe"
+              placeholder="Gaire"
               autoComplete="family-name"
             />
           </div>
@@ -283,7 +334,7 @@ const [notification, setNotification] = useState(null)
             name="nepali_name"
             value={form.nepaliName}
             onChange={(e) => update('nepaliName', e.target.value)}
-            placeholder={language === 'ne' ? 'पूर्ण नाम नेपालीमा' : 'e.g. रमेश केसी'}
+            placeholder={language === 'ne' ? 'पूर्ण नाम नेपालीमा' : 'e.g. सन्दीप गैरे'}
           />
 
           <div className="form-group">
